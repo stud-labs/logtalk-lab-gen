@@ -16,7 +16,7 @@
 :- protocol(catalogp).
    :- protected(el/2).  % el(<Alias, Symbol>,<Structure>).
    :- protected(el/1).  % el(<Structure>). % No name/alias
-   :- public(name/1).% Name of catalog
+   :- public(name/1).   % Name of catalog
    :- public(element/1).
    :- public(element/2).
 :- end_protocol.
@@ -118,6 +118,7 @@
    % importing this category implies importing category optionc.
 
    :- public(signature/2).
+   :- meta_predicate(signature(0, 0)).
    signature(Before, After):-
         % Before is a GOAL, запускается ДО изображения подписи.
         % After is a GOAL, запускается ПОСЛЕ изображения подписи.
@@ -498,7 +499,7 @@
    :- protected(letterRegistration/2).
       %_______________ № ________________
       %На № __________ от _______________
-   letterRegistration(AllSize, HruleSize):-
+   letterRegistration(_AllSize, HruleSize):-
         % ::begin(tabularx,['{Size}{XX}']),
         ::underscoreFill('{18ex}'), ::run('№ '),  ::underscoreFill('{12ex}'), ::nl('0.5em'),
         ::run('На № '), ::underscoreFill(HruleSize), ::run(' от '), ::underscoreFill(HruleSize),
@@ -508,7 +509,7 @@
    :- public(openStream/0).
    :- use_module(user, [open/4, close/1]).
    openStream:-
-        ( _FileName_=user -> OutputStream=user;
+        ( _FileName_==user -> OutputStream=user;
           open(_FileName_, write, OutputStream, [alias(outputStream)])),
         ::assertz(outputStream(OutputStream)).
 
@@ -597,7 +598,7 @@
         R::cmd([large,bfseries,sffamily]), R::run('Справка об успеваемости за весь период обучения'),
         R::run('}'), R::nl('1em'),
         R::run('Выдана '),
-        _Student_ = student(Alias, PersonNames, Gender, _),
+        _Student_ = student(_Alias, PersonNames, Gender, _),
         ::option(dat(PersonName), PersonNames),
         R::run('\\textbf{~w}',[PersonName]), % R::nl,
         R::run(' в том, что '),
@@ -725,7 +726,7 @@
         R::benv, %R::cmd([small]),
         R::cmd('hspace{\\parindent}'),
         R::run('Дана '),
-        _Student_ = student(Alias, PersonNames, Gender, Birth),
+        _Student_ = student(_Alias, PersonNames, Gender, Birth),
         ::option(dat(PersonName), PersonNames),
         R::run('\\textbf{~w}',[PersonName]), % R::par,
         R::date(Birth),

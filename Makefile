@@ -11,3 +11,8 @@ doc.tex doc-anon.tex: docs.lgt
 
 clean:
 	latexmk -C
+
+cleanall: clean
+	rm *.tex
+	rm *.pdf
+	
