@@ -309,16 +309,18 @@
             (
                 forall(member(Doc, DocumentGoalList),
                     (
-                        _Renderer_::newpage,
-                        Doc::gen
+                        (Doc==none ->
+                             format('ERROR: Redefine run/0, supply list of documents to be generated to gen/2!',[]);
+                             _Renderer_::newpage,
+                             Doc::gen
+                        )
                     ))
             )),
         ::end,
         format('% Files "~w" created.\n', [_Renderer_]).
+
    :- public(gen/0).
    gen:-
-      gen(true, [missingdocs]).
+      gen(true, [none]).
 
-   missingdocs:-
-        format('ERROR: Redefine run/0, supply list of documents to be generated to gen/2!',[]).
 :- end_object.

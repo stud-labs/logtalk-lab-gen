@@ -6,7 +6,7 @@ resp: doc-anon.pdf
 %.pdf: %.tex
 	lualatex $<
 
-doc.tex: docs.lgt loader.lgt Makefile
+doc-simple.tex: docs.lgt loader.lgt Makefile
 	swilgt -l loader.lgt -g halt
 
 doc-anon.tex: docs.lgt study-docs-loader.lgt Makefile
