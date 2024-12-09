@@ -15,7 +15,9 @@
     % load the project source files
     logtalk_load([
       docs
-    , docs_test_simple
+    , 'study-docs'
+    , group_anon
+    %, 'group_02223-dm'
     ]),
     halt
 )).
