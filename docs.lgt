@@ -277,6 +277,8 @@
                                                                   none,  2, credN, 2022-06-09, cea).
    course(ppr, course('Производственная практика (научно-исследовательская работа)'),
                                                                   108/3, 1, credN, 2023-07-10, cea).
+   course(predp, course('Производственная практика, преддипломная'),
+                                                                  972/27, 2, credN, 2024-06-2, cea).
 :- end_object.
 
 
@@ -487,7 +489,8 @@
         % ::cmd('geometry{paper=a4paper,showframe, includehead, left=1.5cm, right=1.5cm, top=0.0cm, bottom=1.5cm}'),
         ::run('\\let\\headwidth=\\textwidth'),
         ::cmd('setmainfont[Scale=1,ItalicFont=timesi.ttf,BoldFont=timesbd.ttf,BoldItalicFont=timesbi.ttf]{times.ttf}'),
-        ::cmd('setmonofont[Numbers=SlashedZero,Scale=1,ItalicFont=couri.ttf,BoldFont=courbd.ttf,BoldItalicFont=courbi.ttf,]{cour.ttf}'),
+        %::cmd('setmonofont[Numbers=SlashedZero,Scale=1,ItalicFont=couri.ttf,BoldFont=courbd.ttf,BoldItalicFont=courbi.ttf,]{cour.ttf}'),
+        ::cmd('setmonofont[Numbers=SlashedZero,Scale=1]{Fira Code Regular}'),
         ::cmd('setsansfont[Scale=1,ItalicFont=Fira Sans Italic,BoldFont=Fira Sans Bold,BoldItalicFont=Fira Sans Bold Italic,]{Fira Sans Regular}'),
         ::cmd('newcounter{mytableline}'),
         true.
