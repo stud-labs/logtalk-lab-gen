@@ -1,3 +1,71 @@
+
+:- object(imit_document(_Renderer_)).
+   :- protected(letterRegistration/2).
+      %_______________ № ________________
+      %На № __________ от _______________
+   letterRegistration(_AllSize, HruleSize):-
+        % ::begin(tabularx,['{Size}{XX}']),
+        ::underscoreFill('{18ex}'), ::run('№ '),  ::underscoreFill('{12ex}'), ::nl('0.5em'),
+        ::run('На № '), ::underscoreFill(HruleSize), ::run(' от '), ::underscoreFill(HruleSize),
+        %::end(tabularx).
+        true.
+
+   :- public(initAffiliationFlat/0).
+   initAffiliationFlat:-
+        ::cmd(noindent),
+        ::begin(center),
+        ::isuLogo('width=17mm'),
+        ::runsLn(['МИНОБРНАУКИ РОССИИ',
+                   'Федеральное государственное бюджетное образовательное учреждение высшего образования',
+                   '«Иркутский государственный университет»',
+                   '(ФГБОУ ВО «ИГУ»)',
+                   'Институт математики и информационных технологий',
+                   'б.~Гагарина, д.~20, Иркутск, 664003,',
+                   'Тел.: (3952) 24-22-14, Факс: (3952) 24-39-63',
+                   'ОКПО 02068226, ОГРН 1033801008218, ИНН/КПП 3808013278/380801001',
+                   '\\texttt{http://www.math.isu.ru}, e-mail: \\texttt{ime@math.isu.ru}']),
+        ::vspace('0.7em'),
+        ::letterRegistration('25ex','12ex'),
+        ::end(center).
+
+   :- public(initAffiliation/0).
+   initAffiliation:-
+        ::initAffiliation([]).
+
+   :- public(initAffiliation/1).
+   initAffiliation(Options):-
+        ::cmd(noindent),
+        ::begin(tblr, ['{width=\\linewidth, colspec={X[6]X[5]}, column{1}={c}}']),
+        %::begin(center),
+        ::run('{'),
+        ::cmd(footnotesize),
+        ::isuLogo('width=13mm'),
+        ::runsLn(['МИНОБРНАУКИ РОССИИ',
+                   'Федеральное государственное бюджетное',
+                   'образовательное учреждение',
+                   'высшего образования',
+                   '«Иркутский государственный университет»',
+                   '(ФГБОУ ВО «ИГУ»)',
+                   'Институт математики и информационных технологий',
+                   'б.~Гагарина, д.~20, Иркутск, 664003,',
+                   'Тел.: (3952) 24-22-14, Факс: (3952) 24-39-63',
+                   'ОКПО 02068226, ОГРН 1033801008218,',
+                   'ИНН/КПП 3808013278/380801001',
+                   '\\texttt{http://www.math.isu.ru},',
+                   'e-mail: \\texttt{ime@math.isu.ru}']),
+        ::vspace('0.7em'),
+        ::letterRegistration('25ex','12ex'),
+        %::end(center),
+        ::run('}'),
+        ::tab,
+        %(::option(center(Center), Options) -> call(Center); true),
+        %::tab,
+        (::option(right(Right), Options) -> call(Right); true),
+        ::end(tblr).
+
+:- end_object.
+
+
 :- object(person(_Alias_, _Name_, _BirthDate_)).
 :- end_object.
 
@@ -257,12 +325,13 @@
 :- object(notesDocument(_Renderer_, _Notes_, _Student_, _Curriculum_, _SignPerson_),
    imports([notesc, russianc, optionc,
             signaturec(_Renderer_, _Curriculum_, _SignPerson_)]),
+   extends(imit_document(_Renderer_)),
    implements(documentp)).
    :- use_module(library(lists), [member/2]).
 
    gen:-
         R = _Renderer_,
-        R::initAffiliationFlat,
+        ::initAffiliationFlat,
         R::begin(center),
         ::subjectDefinition,
         R::end(center),
@@ -393,6 +462,7 @@
 :- object(referenceDocument(_Renderer_,_Student_, _Curriculum_, _SignPerson_),
    imports([notesc, russianc, optionc,
             signaturec(_Renderer_, _Curriculum_, _SignPerson_)]),
+   extends(imit_document(_Renderer_)),
    implements(documentp)).
 
    :- use_module(library(lists), [member/2]).
@@ -400,7 +470,7 @@
    gen:-
         R = _Renderer_,
         self(Self),
-        R::initAffiliation([right=Self::right]),
+        ::initAffiliation([right=Self::right]),
         % R::emptyLine,
         R::begin(center),
         R::run('Справка дана для предъявления {\\bfseries по месту требования}'),
