@@ -169,59 +169,6 @@
         ::cmd([noindent, dotfill]).
         % ::cmd([]).
 
-   :- public(initAffiliationFlat/0).
-   initAffiliationFlat:-
-        ::cmd(noindent),
-        ::begin(center),
-        ::isuLogo('width=17mm'),
-        ::runsLn(['МИНОБРНАУКИ РОССИИ',
-                   'Федеральное государственное бюджетное образовательное учреждение высшего образования',
-                   '«Иркутский государственный университет»',
-                   '(ФГБОУ ВО «ИГУ»)',
-                   'Институт математики и информационных технологий',
-                   'б.~Гагарина, д.~20, Иркутск, 664003,',
-                   'Тел.: (3952) 24-22-14, Факс: (3952) 24-39-63',
-                   'ОКПО 02068226, ОГРН 1033801008218, ИНН/КПП 3808013278/380801001',
-                   '\\texttt{http://www.math.isu.ru}, e-mail: \\texttt{ime@math.isu.ru}']),
-        ::vspace('0.7em'),
-        ::letterRegistration('25ex','12ex'),
-        ::end(center).
-
-   :- public(initAffiliation/0).
-   initAffiliation:-
-        ::initAffiliation([]).
-
-   :- public(initAffiliation/1).
-   initAffiliation(Options):-
-        ::cmd(noindent),
-        ::begin(tblr, ['{width=\\linewidth, colspec={X[6]X[5]}, column{1}={c}}']),
-        %::begin(center),
-        ::run('{'),
-        ::cmd(footnotesize),
-        ::isuLogo('width=13mm'),
-        ::runsLn(['МИНОБРНАУКИ РОССИИ',
-                   'Федеральное государственное бюджетное',
-                   'образовательное учреждение',
-                   'высшего образования',
-                   '«Иркутский государственный университет»',
-                   '(ФГБОУ ВО «ИГУ»)',
-                   'Институт математики и информационных технологий',
-                   'б.~Гагарина, д.~20, Иркутск, 664003,',
-                   'Тел.: (3952) 24-22-14, Факс: (3952) 24-39-63',
-                   'ОКПО 02068226, ОГРН 1033801008218,',
-                   'ИНН/КПП 3808013278/380801001',
-                   '\\texttt{http://www.math.isu.ru},',
-                   'e-mail: \\texttt{ime@math.isu.ru}']),
-        ::vspace('0.7em'),
-        ::letterRegistration('25ex','12ex'),
-        %::end(center),
-        ::run('}'),
-        ::tab,
-        %(::option(center(Center), Options) -> call(Center); true),
-        %::tab,
-        (::option(right(Right), Options) -> call(Right); true),
-        ::end(tblr).
-
    :- public(isuLogo/1).
    isuLogo(Option):-
         runLn('\\includegraphics[~w]{~w}',[Option, 'isu-logo.png']).
@@ -237,16 +184,6 @@
         ::cmd('setmonofont[Numbers=SlashedZero,Scale=1]{Fira Code Regular}'),
         ::cmd('setsansfont[Scale=1,ItalicFont=Fira Sans Italic,BoldFont=Fira Sans Bold,BoldItalicFont=Fira Sans Bold Italic,]{Fira Sans Regular}'),
         ::cmd('newcounter{mytableline}'),
-        true.
-
-   :- protected(letterRegistration/2).
-      %_______________ № ________________
-      %На № __________ от _______________
-   letterRegistration(_AllSize, HruleSize):-
-        % ::begin(tabularx,['{Size}{XX}']),
-        ::underscoreFill('{18ex}'), ::run('№ '),  ::underscoreFill('{12ex}'), ::nl('0.5em'),
-        ::run('На № '), ::underscoreFill(HruleSize), ::run(' от '), ::underscoreFill(HruleSize),
-        %::end(tabularx).
         true.
 
    :- public(openStream/0).
@@ -324,3 +261,14 @@
       gen(true, [none]).
 
 :- end_object.
+
+
+:- category(local_document(_Renderer_),
+   implements(documentp)).
+   run:-
+        ::support,
+        ::title,
+        ::main_subject,
+        ::signatures.
+
+:- end_category.
