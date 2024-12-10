@@ -2,5 +2,5 @@
    extends(documents(latexRenderer("doc-simple.tex")))).
    :- use_module(library(lists), [member/2]).
 
-   :- initialization(gen).
+   :- initialization(::gen).
 :- end_object.
