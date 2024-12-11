@@ -295,3 +295,32 @@
    err(Text):-
         _Renderer_::run('% ERROR: ~w', [Text]).
 :- end_category.
+
+
+:- category(long_tblrc(_Renderer_)).
+
+   :- public(longtblr_style/0).
+   longtblr_style:-
+        R = _Renderer_,
+        R::cmd('DefTblrTemplate{contfoot-text}{default}{}'),
+        R::cmd('DefTblrTemplate{conthead-text}{default}{}'),
+        R::cmd('DefTblrTemplate{caption-text}{default}{}'),
+        R::cmd('DefTblrTemplate{caption-tag}{default}{}'),
+        R::cmd('DefTblrTemplate{caption-sep}{default}{}'),
+        true.
+
+   :- private(table_header/0).
+   table_header:-
+        _Renderer_ = R,
+        R::begin(longtblr,[
+            '[caption={}]',
+            '{',
+            'width=1\\linewidth,rowhead=1,colspec={XXX}, row{1} = {l}, column{1} = {c}, column{3} = {l}}'
+            ]).
+
+   :- private(table_footer/0).
+   table_footer:-
+        _Renderer_ = R,
+        R::end(longtblr).
+
+:- end_category.

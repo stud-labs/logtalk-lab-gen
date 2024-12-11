@@ -2,16 +2,20 @@
 % :- category()
 
 
-:- category(isdct_supportc(_Renderer_, _InstData_)).
+:- category(isdct_supportc(_Renderer_, _InstData_),
+   extends(long_tblrc(_Renderer_))).
    :- public(support/0).
    support :-
-           % R = _Renderer_,
+           R = _Renderer_,
            % I = _InstData_,
-           ::tableHeader,
-           trunl('\\textbf{УТВЕРЖДАЮ}',[]),
-           trunl('\\textbf{}',[]),
-           trunl('\\textbf{Оценка}',[]),
-           ::tableFooter.
+           ::longtblr_style,
+           ::table_header,
+           trunl('{УТВЕРЖДАЮ}',[]),
+           _InstData_::director(DName, DPos, DDegree),
+           _InstData_::shortname(ISName),
+           trunl('{~w ~w ~w}',[DPos, ISName, DDegree]),
+           trunl('{Оценка}',[]),
+           ::table_footer.
 
    trunl(FormatString, Args):-
         R = _Renderer_,
@@ -20,28 +24,18 @@
         R::run(FormatString, Args),
         R::nl.
 
-   :- private(tableHeader/0).
-   tableHeader:-
-        _Renderer_ = R,
-        % ::longtblrStyle(default),
-        R::begin(longtblr,[
-            '[caption={}]',
-            '{',
-            'width=1\\linewidth,rowhead=1,colspec={XXX}, row{1} = {l}, column{1} = {c}, column{3} = {l}}'
-            ]).
+:- end_category.
 
-   :- private(tableFooter/0).
-   tableFooter:-
-        _Renderer_ = R,
-        R::end(longtblr).
+:- category(isdct_signaturec(_Renderer_),
+   extends(long_tblrc(_Renderer_))).
 
 :- end_category.
 
-
-:- object(permission_customs(_Renderer_, _InstData_),
+:- object(permission_customs(_Renderer_, _InstData_, _Whom_Where_),
     imports([
           isdct_supportc(_Renderer_, _InstData_)
         , local_documentc(_Renderer_)
+%        , longtblr_style(_Renderer_)
     ]),
     implements(documentp)).
 
