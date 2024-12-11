@@ -431,16 +431,6 @@
         R::run(SubjectName), R::tab,
         R::run(NoteName), R::nl.
 
-   :- protected(longtblrStyle/1).
-   longtblrStyle(_):-
-        R = _Renderer_,
-        R::cmd('DefTblrTemplate{contfoot-text}{default}{}'),
-        R::cmd('DefTblrTemplate{conthead-text}{default}{}'),
-        R::cmd('DefTblrTemplate{caption-text}{default}{}'),
-        R::cmd('DefTblrTemplate{caption-tag}{default}{}'),
-        R::cmd('DefTblrTemplate{caption-sep}{default}{}'),
-        true.
-
    :- protected(resetLineNumber/0).
    resetLineNumber:-
         retractall(lineNumber(_)),

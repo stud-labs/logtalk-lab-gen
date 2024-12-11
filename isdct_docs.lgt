@@ -1,52 +1,50 @@
-:- category(isdct_data).
-   :- public(director/3).
-   :- public(departmentone/3).
-   :- public(expertheader/3).
 
-   director('И.В.Бычков', 'Директор', 'академик').
-   departmentone('Л.Ф.Зеленова', none, none).
-   expertheader('А.Г.Феоктистов', 'Заместитель директора по научной работе', 'д.т.н.')
-:- end_category.
+% :- category()
 
 
-:- category(isdct_support(_Renderer_, _InstData_)).
+:- category(isdct_supportc(_Renderer_, _InstData_),
+   extends(long_tblrc(_Renderer_))).
    :- public(support/0).
    support :-
            R = _Renderer_,
-           I = _InstData_,
-           ::tableHeader,
-           trun('\\textbf{УТВЕРЖДАЮ} '), R::nl,
-           trun('\\textbf{} '), R::nl,
-           trun('\\textbf{Оценка} '), R::nl,
-           ::tableFooter.
+           % I = _InstData_,
+           ::longtblr_style,
+           ::table_header,
+           trunl('{УТВЕРЖДАЮ}',[]),
+           _InstData_::director(DName, DPos, DDegree),
+           _InstData_::shortname(ISName),
+           trunl('{~w ~w ~w}',[DPos, ISName, DDegree]),
+           trunl('{Оценка}',[]),
+           ::table_footer.
 
-   trun(Arg):-
+   trunl(FormatString, Args):-
         R = _Renderer_,
         R::tab,
         R::tab,
-        R::run(Arg),
-        R::
-
-   :- private(tableHeader/0).
-   tableHeader:-
-        _Renderer_ = R,
-        % ::longtblrStyle(default),
-        R::begin(longtblr,[
-            '[caption={}]',
-            '{',
-            'width=1\\linewidth,rowhead=1,colspec={XXX}, row{1} = {l}, column{1} = {c}, column{3} = {l}}'
-            ]).
-
-   :- private(tableFooter/0).
-   tableFooter:-
-        _Renderer_ = R,
-        R::end(longtblr).
+        R::run(FormatString, Args),
+        R::nl.
 
 :- end_category.
 
-:- object(permission_customs(_Renderer_),
+:- category(isdct_signaturec(_Renderer_),
+   extends(long_tblrc(_Renderer_))).
+
+:- end_category.
+
+:- object(permission_customs(_Renderer_, _InstData_, _Whom_Where_),
     imports([
-          local_document(_Renderer_)
-        , isdct_support(_Renderer_)]),
+          isdct_supportc(_Renderer_, _InstData_)
+        , local_documentc(_Renderer_)
+%        , longtblr_style(_Renderer_)
+    ]),
     implements(documentp)).
+
+    main_subject:-
+        R = _Renderer_,
+        R::run("Main Subject"), R::nl.
+
+    title:-
+        R = _Renderer_,
+        R::run("Tile").
+
 :- end_object.

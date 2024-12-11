@@ -1,7 +1,9 @@
-
 :- protocol(documentp).
    :- public(gen/0).
    :- protected(subjectDefinition/0).
+   :- protected(main_subject/0).
+   :- protected(title/0).
+   :- protected(signature/0).
 :- end_protocol.
 
 :- category(optionc).
@@ -246,10 +248,15 @@
             (
                 forall(member(Doc, DocumentGoalList),
                     (
-                        (Doc==none ->
+                        (Doc == none ->
                              format('ERROR: Redefine run/0, supply list of documents to be generated to gen/2!',[]);
-                             _Renderer_::newpage,
-                             Doc::gen
+                             (
+                                % debugger::trace,
+
+                                Doc::gen -> _Renderer_::newpage
+                                ;
+                                _Renderer_::run('% Rendering failed ~w', [Doc])
+                             )
                         )
                     ))
             )),
@@ -263,12 +270,57 @@
 :- end_object.
 
 
-:- category(local_document(_Renderer_),
+:- category(local_documentc(_Renderer_),
    implements(documentp)).
-   run:-
+
+   gen:-
         ::support,
         ::title,
         ::main_subject,
-        ::signatures.
+        ::signature.
+
+   % default definitions to sign errors.
+   :- public(support/0).
+
+   support:-
+        err("No support section defined").
+   title:-
+        err("No title defined").
+   main_subject:-
+        err("No main_subject defined").
+   signature:-
+        err("No signature section defined").
+
+   :- protected(err/1).
+   err(Text):-
+        _Renderer_::run('% ERROR: ~w', [Text]).
+:- end_category.
+
+
+:- category(long_tblrc(_Renderer_)).
+
+   :- public(longtblr_style/0).
+   longtblr_style:-
+        R = _Renderer_,
+        R::cmd('DefTblrTemplate{contfoot-text}{default}{}'),
+        R::cmd('DefTblrTemplate{conthead-text}{default}{}'),
+        R::cmd('DefTblrTemplate{caption-text}{default}{}'),
+        R::cmd('DefTblrTemplate{caption-tag}{default}{}'),
+        R::cmd('DefTblrTemplate{caption-sep}{default}{}'),
+        true.
+
+   :- private(table_header/0).
+   table_header:-
+        _Renderer_ = R,
+        R::begin(longtblr,[
+            '[caption={}]',
+            '{',
+            'width=1\\linewidth,rowhead=1,colspec={XXX}, row{1} = {l}, column{1} = {c}, column{3} = {l}}'
+            ]).
+
+   :- private(table_footer/0).
+   table_footer:-
+        _Renderer_ = R,
+        R::end(longtblr).
 
 :- end_category.
