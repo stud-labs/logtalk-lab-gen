@@ -17,7 +17,7 @@
       docs
     , isdct_docs
     , 'isdct-docs-papers'
-    , 
+    ,
     ]),
     halt
 )).
