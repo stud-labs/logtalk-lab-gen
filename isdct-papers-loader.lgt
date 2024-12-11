@@ -17,7 +17,8 @@
       docs
     , isdct_docs
     , 'isdct-docs-papers'
-    , 
+    , 'isdct-docs-papers-gen'
     ]),
+    isdct_papers_documents(latexRenderer("isdct_docs.tex"), ytu_2024_12_data)::gen,
     halt
 )).

@@ -1,31 +1,24 @@
-:- category(isdct_data).
-   :- public(director/3).
-   :- public(departmentone/3).
-   :- public(expertheader/3).
 
-   director('И.В.Бычков', 'Директор', 'академик').
-   departmentone('Л.Ф.Зеленова', none, none).
-   expertheader('А.Г.Феоктистов', 'Заместитель директора по научной работе', 'д.т.н.')
-:- end_category.
+% :- category()
 
 
-:- category(isdct_support(_Renderer_, _InstData_)).
+:- category(isdct_supportc(_Renderer_, _InstData_)).
    :- public(support/0).
    support :-
-           R = _Renderer_,
-           I = _InstData_,
+           % R = _Renderer_,
+           % I = _InstData_,
            ::tableHeader,
-           trun('\\textbf{УТВЕРЖДАЮ} '), R::nl,
-           trun('\\textbf{} '), R::nl,
-           trun('\\textbf{Оценка} '), R::nl,
+           trunl('\\textbf{УТВЕРЖДАЮ}',[]),
+           trunl('\\textbf{}',[]),
+           trunl('\\textbf{Оценка}',[]),
            ::tableFooter.
 
-   trun(Arg):-
+   trunl(FormatString, Args):-
         R = _Renderer_,
         R::tab,
         R::tab,
-        R::run(Arg),
-        R::
+        R::run(FormatString, Args),
+        R::nl.
 
    :- private(tableHeader/0).
    tableHeader:-
@@ -44,9 +37,20 @@
 
 :- end_category.
 
-:- object(permission_customs(_Renderer_),
+
+:- object(permission_customs(_Renderer_, _InstData_),
     imports([
-          local_document(_Renderer_)
-        , isdct_support(_Renderer_)]),
+          isdct_supportc(_Renderer_, _InstData_)
+        , local_documentc(_Renderer_)
+    ]),
     implements(documentp)).
+
+    main_subject:-
+        R = _Renderer_,
+        R::run("Main Subject"), R::nl.
+
+    title:-
+        R = _Renderer_,
+        R::run("Tile").
+
 :- end_object.
