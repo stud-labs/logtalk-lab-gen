@@ -21,4 +21,4 @@
     ]),
     isdct_papers_documents(latexRenderer("isdct_docs.tex"), ytu_2024_12_data)::gen,
     halt
-)).
+))
