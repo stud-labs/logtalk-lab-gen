@@ -24,10 +24,12 @@
    :- use_module(library(lists), [member/2]).
    :- public(gen/0).
    gen :-
+	true.
+   c:-
        % debugger::trace,
        forall(member(FileName,['doc-anon.tex']),  % add/replace by user to screen output
        % forall(member(FileName,[user]),  % add/replace by user to screen output
-              potaninDocuments(latexRenderer(FileName),
+              potanin_documents(latex_renderer(FileName),
                    notes_anon, group_anon,
                    curriculum2023,
                    fal)::gen).

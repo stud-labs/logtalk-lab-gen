@@ -1,26 +1,14 @@
+
 :- protocol(documentp).
    :- public(gen/0).
-   :- protected(subjectDefinition/0).
+   :- protected(subject_definition/0).
    :- protected(main_subject/0).
    :- protected(title/0).
    :- protected(signature/0).
 :- end_protocol.
 
-:- category(optionc).
-   :- use_module(library(option), [option/2 as locoption]).
-
-   % Example:   ::option(tag(Value), [tag(1), tag=2, other=foo, baz(foo)])
-   % Results:   Value = 1, Value = 2.
-
-   :- public(option/2).
-   option(Query, List):-
-       locoption(Query, List).
-
-:- end_category.
-
-
 :- category(russianc,
-   extends(optionc)).
+   extends(options)).
    :- public(choice/3).
    choice(Gender, Variants, Variant):-
        Query =.. [Gender, Variant],
@@ -28,23 +16,31 @@
 :- end_category.
 
 
-:- object(latexRenderer(_FileName_),
-   imports(optionc)).
+:- object(latex_renderer(_FileName_),
+   imports(options)).
    :- use_module(library(lists), [member/2]).
 
-   :- public(preamble/0).
-   preamble:-
+   :- public(file_preamble/0).
+   file_preamble:-
         ::run('\\documentclass[12pt]{scrreprt}'),
         ::cmd('pagestyle{empty}'),
-        forall(::requirePackage(Package), ::run('\\usepackage{~w}', [Package])),
-        forall(::requirePackage(Options, Package), ::run('\\usepackage~w{~w}', [Options, Package])),
-        ::styleConfig,
-        ::auxPreamble,
+        forall(::require_package(Package), ::run('\\usepackage{~w}', [Package])),
+        forall(::require_package(Options, Package), ::run('\\usepackage~w{~w}', [Options, Package])),
+        ::style_config,
+        ::aux_preamble,
+        ::begin_document.
+
+   :- public(begin_document/0).
+   begin_document:-
         ::begin(document).
 
-   :- public(postamble/0).
-   postamble:-
+   :- public(end_document/0).
+   end_document:-
         ::end(document).
+
+   :- public(file_postamble/0).
+   file_postamble:-
+        ::end_document.
 
    :- public(newpage/0).
    newpage:-
@@ -60,32 +56,30 @@
 
    :- public(run/1).
    run(String):-
-        ::outputStream(O),
+		string(String),!,
+        ::output_stream(O),
         format(O, '~w\n', [String]).
+
+   run([]).
+   run([S|T]):-
+        forall(member(L, [S|T]), run_ln(L)).
+
    :- public(run/2).
    run(FormatString, Args):-
         format(atom(S), FormatString, Args),
         run(S).
 
-   :- public(runLn/1).
-   runLn(String):-
-        ::outputStream(O),
-        format(O, '~w\\\\\n', [String]).
+   :- public(run_ln/1).
+   run_ln(String):-
+        run(String),
+        ::output_stream(O),
+        format(O, '\\\\n', []).
 
-   :- public(runsLn/1).
-   runsLn([]).
-   runsLn([S|T]):-
-        forall(member(L, [S|T]), runLn(L)).
-
-   :- public(runs/1).
-   runs([]).
-   runs([S|T]):-
-        forall(member(L, [S|T]), run(L)).
-
-   :- public(runLn/2).
-   runLn(FormatString, Args):-
-        format(atom(S), FormatString, Args),
-        runLn(S).
+   :- public(run_ln/2).
+   run_ln(FormatString, Args):-
+        run(FormatString, Args),
+        ::output_stream(O),
+        format(O, '\\\\n', []).
 
    :- public(begin/1).
    begin(Environment):-
@@ -95,7 +89,7 @@
    begin(Environment,Args):-
         format(atom(S), 'begin{~w}', [Environment]),
         ::cmd(S),
-        ::runs(Args).
+        ::run(Args).
    :- public(end/1).
    end(Environment):-
         format(atom(S), 'end{~w}', [Environment]),
@@ -103,23 +97,25 @@
 
    :- public(nl/0).
    nl:-
-    runLn('').
+    run_ln('').
    :- public(nl/1).
    nl(Size):-
-        ::outputStream(O),
+        ::output_stream(O),
         format(O,'\\\\[~w]\n',[Size]).
 
    :- public(par/0).
    par:-
-        ::cmd(par).
+        ::cmd(par),
+        ::output_stream(O),
+        format(O,'\n',[]).
 
    :- public(vspace/1).
    vspace(Size):-
-        ::outputStream(O),
+        ::output_stream(O),
         format(O,'\\vspace{~w}\n',[Size]).
 
-   :- public(emptyLine/0).
-   emptyLine:-
+   :- public(empty_line/0).
+   empty_line:-
         vspace('1em').
 
    :- public(date/1).
@@ -128,19 +124,19 @@
         ::run(String).
    :- public(date/2).
    date(YYYY-MM-DD, Output):-
-        ::twodig(DD, D),
-        ::twodig(MM, M),
+        ::two_dig(DD, D),
+        ::two_dig(MM, M),
         format(atom(Output), '~w.~w.~w',[D, M, YYYY]).
 
-   :- protected(twodig/2).
-   twodig(D, Output):-D>=10,!,
+   :- protected(two_dig/2).
+   two_dig(D, Output):-D>=10,!,
         format(atom(Output), '~w', [D]).
-   twodig(D, Output):-
+   two_dig(D, Output):-
         format(atom(Output), '0~w', [D]).
 
 
-   :- public(underscoreFill/1).
-   underscoreFill(Size):-
+   :- public(underscore_fill/1).
+   underscore_fill(Size):-
         ::run('\\makebox[~w]{\\hrulefill}',[Size]).
 
    :- public(tab/0).
@@ -166,17 +162,17 @@
    eenv:-
         ::run('}').
 
-   :- public(cuttingLine/0).
-   cuttingLine:-
+   :- public(cutting_line/0).
+   cutting_line:-
         ::cmd([noindent, dotfill]).
         % ::cmd([]).
 
-   :- public(isuLogo/1).
-   isuLogo(Option):-
-        runLn('\\includegraphics[~w]{~w}',[Option, 'isu-logo.png']).
+   :- public(include_graphics/2).
+   include_graphics(Options, Filename):-
+        run_ln('\\includegraphics[~w]{~w}',[Options, Filename]).
 
-   :- public(styleConfig/0).
-   styleConfig:-
+   :- public(style_config/0).
+   style_config:-
         ::cmd('defaultfontfeatures{Ligatures={TeX,Required},Scale=MatchLowercase}'),
         ::cmd('geometry{paper=a4paper,includehead, left=1.5cm, right=1.5cm, top=0.0cm, bottom=1.5cm}'),
         % ::cmd('geometry{paper=a4paper,showframe, includehead, left=1.5cm, right=1.5cm, top=0.0cm, bottom=1.5cm}'),
@@ -188,41 +184,41 @@
         ::cmd('newcounter{mytableline}'),
         true.
 
-   :- public(openStream/0).
+   :- public(open_stream/0).
    :- use_module(user, [open/4, close/1]).
-   openStream:-
+   open_stream:-
         ( _FileName_==user -> OutputStream=user;
           open(_FileName_, write, OutputStream, [alias(outputStream)])),
-        ::assertz(outputStream(OutputStream)).
+        ::assertz(output_stream(OutputStream)).
 
-   :- public(closeStream/0).
-   closeStream:-
-        ::outputStream(O),
+   :- public(close_stream/0).
+   close_stream:-
+        ::output_stream(O),
         ( O\=user -> close(O); true),
-        ::retractall(outputStream(_)).
+        ::retractall(output_stream(_)).
 
-   :- protected(outputStream/1).
-   :- dynamic(outputStream/1).
+   :- protected(output_stream/1).
+   :- dynamic(output_stream/1).
 
-   :- protected(auxPreamble/0).
-   auxPreamble.
+   :- protected(aux_preamble/0).
+   aux_preamble.
 
-   :- protected(requirePackage/1).
-   %requirePackage(isudoc).
-   requirePackage(longtable).
-   requirePackage(tabularx).
-   requirePackage(graphicx).
-   requirePackage(geometry).
-   requirePackage(indentfirst).
-   requirePackage(luatextra).
-   requirePackage('unicode-math').
-   requirePackage(color).
-   requirePackage(tabularray).
+   :- protected(require_package/1).
+   %require_package(isudoc).
+   require_package(longtable).
+   require_package(tabularx).
+   require_package(graphicx).
+   require_package(geometry).
+   require_package(indentfirst).
+   require_package(luatextra).
+   require_package('unicode-math').
+   require_package(color).
+   require_package(tabularray).
 
-   :- protected(requirePackage/2).
-   requirePackage([final], hyperref).
-   requirePackage([protrusion=false,expansion=false],microtype).
-   requirePackage([russian,english], babel).
+   :- protected(require_package/2).
+   require_package([final], hyperref).
+   require_package([protrusion=false,expansion=false],microtype).
+   require_package([russian,english], babel).
 
 :- end_object.
 
@@ -230,13 +226,13 @@
 :- object(documents(_Renderer_)).
    :- protected(start/0).
    start:-
-        _Renderer_::openStream,
-        _Renderer_::preamble.
+        _Renderer_::open_stream,
+        _Renderer_::file_preamble.
 
    :- protected(end/0).
    end:-
-        _Renderer_::postamble,
-        _Renderer_::closeStream.
+        _Renderer_::file_postamble,
+        _Renderer_::close_stream.
 
    :- use_module(library(lists), [member/2]).
    :- public(gen/2).
