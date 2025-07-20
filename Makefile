@@ -10,8 +10,8 @@ resp: $(TARGET).pdf
 $(TARGET).tex: docs.lgt loader.lgt Makefile
 	swilgt -l loader.lgt -g halt
 
-$(TARGET).tex: docs.lgt study-docs-loader.lgt Makefile
-	swilgt -l study-docs-loader.lgt -g halt
+#$(TARGET).tex: docs.lgt study-docs-loader.lgt Makefile#
+#	swilgt -l study-docs-loader.lgt -g halt
 
 isdct_docs.tex: docs.lgt isdct-papers-loader.lgt Makefile
 	swilgt -l isdct-papers-loader.lgt -g halt

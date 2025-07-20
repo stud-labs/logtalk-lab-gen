@@ -56,13 +56,18 @@
 
    :- public(run/1).
    run(String):-
-		string(String),!,
+		sanl(String),!,
         ::output_stream(O),
         format(O, '~w\n', [String]).
 
    run([]).
    run([S|T]):-
         forall(member(L, [S|T]), run_ln(L)).
+
+   sanl(S):-
+		string(S),!.
+   sanl(S):-
+		atom(S),!.
 
    :- public(run/2).
    run(FormatString, Args):-
@@ -259,8 +264,9 @@
         ::end,
         format('% Files "~w" created.\n', [_Renderer_]).
 
-   :- public(gen/0).
+   :- protected(gen/0).
    gen:-
+	  % debugger::trace,
       gen(true, [none]).
 
 :- end_object.
