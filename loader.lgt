@@ -16,6 +16,7 @@
     logtalk_load([
       docs
     , parts
+	 , cd_source
     , docs_test_simple
     ]),
     halt
