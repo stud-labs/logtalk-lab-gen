@@ -88,7 +88,8 @@
       (::option(add_line(departments), Options),
 		 Department::parent(_)
 		 ->
-		 Renderer::vspace('0.7em')
+		 ::option(vskip(departments, Skip), Options, vskip(departments, '0.7em')),
+		 Renderer::vspace(Skip)
 		 ;
 		 true),
       Renderer::run_ln(UTitle).

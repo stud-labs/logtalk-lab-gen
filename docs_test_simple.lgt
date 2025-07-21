@@ -58,7 +58,8 @@
 	draw:-
 		::draw(plain,
 			[add_line(departments),
-			upcase(departments)]).
+			upcase(departments),
+			vskip(departments, '0.3em')]).
 
 	draw(plain, Options) :-
 		% debugger::trace,
