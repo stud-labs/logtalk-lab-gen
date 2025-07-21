@@ -15,6 +15,7 @@
     % load the project source files
     logtalk_load([
       docs
+    , parts
     , docs_test_simple
     ]),
     halt

@@ -1,13 +1,14 @@
 .PHONY: clean resp
 
 TARGET=docs_test_simple
+SRC=docs.lgt parts.lgt docs_test_simple.lgt loader.lgt
 
 resp: $(TARGET).pdf
 
 %.pdf: %.tex
 	test -f $< && lualatex --halt-on-error $<
 
-$(TARGET).tex: docs.lgt loader.lgt Makefile
+$(TARGET).tex: $(SRC) Makefile
 	swilgt -l loader.lgt -g halt
 
 #$(TARGET).tex: docs.lgt study-docs-loader.lgt Makefile#

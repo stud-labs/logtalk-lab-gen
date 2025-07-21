@@ -20,6 +20,15 @@
    imports(options)).
    :- use_module(library(lists), [member/2]).
 
+   :- public(file_name/1).
+   :- mode(file_name(-atom), one).
+   :- info(file_name/1, [
+      comment is 'Returns file name of the stream',
+      argnames is ['FileName']
+   ]).
+
+   file_name(_FileName_).
+
    :- public(file_preamble/0).
    file_preamble:-
         ::run('\\documentclass[12pt]{scrreprt}'),
@@ -56,9 +65,9 @@
 
    :- public(run/1).
    run(String):-
-		sanl(String),!,
+		% sanl(String),!,
         ::output_stream(O),
-        format(O, '~w\n', [String]).
+        format(O, '~w~n', [String]).
 
    run([]).
    run([S|T]):-
@@ -78,13 +87,13 @@
    run_ln(String):-
         run(String),
         ::output_stream(O),
-        format(O, '\\\\n', []).
+        format(O, '\\\\~n', []).
 
    :- public(run_ln/2).
    run_ln(FormatString, Args):-
         run(FormatString, Args),
         ::output_stream(O),
-        format(O, '\\\\n', []).
+        format(O, '\\\\~n', []).
 
    :- public(begin/1).
    begin(Environment):-
@@ -106,7 +115,7 @@
    :- public(nl/1).
    nl(Size):-
         ::output_stream(O),
-        format(O,'\\\\[~w]\n',[Size]).
+        format(O,'\\\\[~w]~n',[Size]).
 
    :- public(par/0).
    par:-
@@ -117,7 +126,7 @@
    :- public(vspace/1).
    vspace(Size):-
         ::output_stream(O),
-        format(O,'\\vspace{~w}\n',[Size]).
+        format(O,'\\vspace{~w}~n',[Size]).
 
    :- public(empty_line/0).
    empty_line:-
@@ -138,7 +147,6 @@
         format(atom(Output), '~w', [D]).
    two_dig(D, Output):-
         format(atom(Output), '0~w', [D]).
-
 
    :- public(underscore_fill/1).
    underscore_fill(Size):-
@@ -187,6 +195,7 @@
         ::cmd('setmonofont[Numbers=SlashedZero,Scale=1]{Fira Code Regular}'),
         ::cmd('setsansfont[Scale=1,ItalicFont=Fira Sans Italic,BoldFont=Fira Sans Bold,BoldItalicFont=Fira Sans Bold Italic,]{Fira Sans Regular}'),
         ::cmd('newcounter{mytableline}'),
+        ::run('\\DeclareUrlCommand\\uscore{\\urlstyle{tt}}'),
         true.
 
    :- public(open_stream/0).
@@ -219,6 +228,7 @@
    require_package('unicode-math').
    require_package(color).
    require_package(tabularray).
+   require_package(url).
 
    :- protected(require_package/2).
    require_package([final], hyperref).
@@ -228,7 +238,41 @@
 :- end_object.
 
 
-:- object(documents(_Renderer_)).
+:- object(document(_Renderer_)).
+
+   :- info([
+       version is 1:0:0,
+       author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+       date is 2025-07-21,
+       comment is 'A general root of documents. Draws itself on _Renderer_'
+   ]).
+
+   :- public(renderer/1).
+   % :- mode(renderer/1, one).
+   :- info(renderer/1, [
+       comment is 'Returns the _Renderer_'
+   ]).
+
+   renderer(_Renderer_).
+
+   :- public(draw/0).
+   % :- mode(draw, one).
+   :- info(draw/0, [
+       comment is 'Draws itself on _Renderer_'
+   ]).
+
+   draw:-
+      self(Self),
+      ::renderer(R),
+      R::run_ln('ERROR: Document descendant of \\uscore{~w} is not defined', [Self]).
+
+
+:- end_object.
+
+
+:- object(documents(_Renderer_),
+   extends(document(_Renderer_))).
+
    :- protected(start/0).
    start:-
         _Renderer_::open_stream,
@@ -243,6 +287,7 @@
    :- public(gen/2).
    :- meta_predicate(gen(0,0)).
    gen(DataGoal, DocumentGoalList):-
+        % debugger::trace,
         ::start,
         forall(
             call(DataGoal),
@@ -254,7 +299,7 @@
                              (
                                 % debugger::trace,
 
-                                Doc::gen -> _Renderer_::newpage
+                                Doc::draw -> _Renderer_::newpage
                                 ;
                                 _Renderer_::run('% Rendering failed ~w', [Doc])
                              )
@@ -262,7 +307,8 @@
                     ))
             )),
         ::end,
-        format('% Files "~w" created.\n', [_Renderer_]).
+        _Renderer_::file_name(FileName),
+        format('% Files "~w" created.\n', [FileName]).
 
    :- protected(gen/0).
    gen:-
@@ -275,7 +321,7 @@
 :- category(local_documentc(_Renderer_),
    implements(documentp)).
 
-   gen:-
+   draw:-
         ::support,
         ::title,
         ::main_subject,
