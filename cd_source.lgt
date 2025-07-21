@@ -79,8 +79,6 @@
        comment is 'Deduce department level and its name'
    ]).
 
-	parent(cd_ministry).
-
 	title(Name) :-
 		query(row(Name)).
 
@@ -92,10 +90,17 @@
 :- end_object.
 
 
+:- object(cd_university(_Code_),
+	extends(cd_department(_Code_))).
+
+	parent(cd_ministry).
+
+:- end_object.
+
 :- object(cd_institute,
 	implements(departmentp)).
 
-	parent(cd_department(Code)) :-
+	parent(cd_university(Code)) :-
 		query(row(_, Code)).
 
 	title(Name) :-
@@ -105,6 +110,5 @@
 		sql_connection::query(
 				'SELECT Полноеназвание, вкРодителя FROM дсФилиалы WHERE Головноеучреждение != 1;',
 				Row),!.
-
 
 :- end_object.

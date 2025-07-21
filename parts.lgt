@@ -102,5 +102,4 @@
 
    draw_parents(_, _, _).
 
-
 :- end_category.
