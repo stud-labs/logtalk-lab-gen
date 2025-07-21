@@ -56,7 +56,9 @@
 	department(cd_institute).
 
 	draw:-
-		::draw(plain, [add_line(departments)]).
+		::draw(plain,
+			[add_line(departments),
+			upcase(departments)]).
 
 	draw(plain, Options) :-
 		% debugger::trace,

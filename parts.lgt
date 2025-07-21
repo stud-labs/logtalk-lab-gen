@@ -80,20 +80,26 @@
        argnames is ['ListOfOptions']
    ]).
 
+
+	draw_title(Title, Renderer, Options) :-
+      (::option(upcase(departments), Options) ->
+			upcase_atom(Title, UTitle); UTitle = Title),
+      (::option(add_line(departments), Options) -> Renderer::vspace('0.7em'); true),
+      Renderer::run_ln(UTitle).
+
    draw_title_stack(Options) :-
       ::renderer(R),
       ::department(D),
       draw_parents(D, R, Options),
       D::title(Title),
-      (::option(add_line(departments), Options) -> R::vspace('0.7em'); true),
-      R::run_ln(Title).
+		draw_title(Title, R, Options).
 
    draw_parents(Department, Renderer, Options):-
       Department::parent(Parent), !,
       draw_parents(Parent, Renderer, Options),
       Parent::title(Title),
-      (::option(add_line(departments), Options) -> Renderer::vspace('0.7em'); true),
-      Renderer::run_ln(Title).
+		draw_title(Title, Renderer, Options).
+
    draw_parents(_, _, _).
 
 
