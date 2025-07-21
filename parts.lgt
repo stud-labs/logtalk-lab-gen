@@ -39,10 +39,3 @@
    :- info(org_name/1, [
        comment is 'Sraw organization Name'
    ]).
-
-
-
-
-
-
-:- end_category.

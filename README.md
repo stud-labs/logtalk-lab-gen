@@ -9,4 +9,6 @@ Laboratory work on generation guality LuaLaTeX educational office documents
 
 Команды для запуска находятся в Makefile
 
+## ГОСТ по документам
 
+https://lyceum.urfu.ru/fileadmin/user_upload/docs/GOST_7.0.97-2016.pdf

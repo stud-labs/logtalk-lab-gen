@@ -1,6 +1,5 @@
 :- object(documents_test_simple,
-   extends(documents(latexRenderer("doc-simple.tex")))).
-   :- use_module(library(lists), [member/2]).
+   extends(documents(latex_renderer("doc-simple.tex")))).
 
    :- initialization(::gen).
 :- end_object.

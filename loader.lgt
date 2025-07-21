@@ -11,7 +11,7 @@
     logtalk_load(tutor(loader)),
     logtalk_load(tools(loader)),  % debugging, tracing, trace
     logtalk_load(debugger(loader)),  % debugging
-
+    logtalk_load(options(loader)),
     % load the project source files
     logtalk_load([
       docs

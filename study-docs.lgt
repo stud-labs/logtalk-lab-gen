@@ -1,21 +1,23 @@
-
 :- object(imit_document(_Renderer_)).
-   :- protected(letterRegistration/2).
+   :- protected(letter_registration/2).
       %_______________ № ________________
       %На № __________ от _______________
-   letterRegistration(_AllSize, HruleSize):-
+   letter_registration(_AllSize, HruleSize):-
         % ::begin(tabularx,['{Size}{XX}']),
-        ::underscoreFill('{18ex}'), ::run('№ '),  ::underscoreFill('{12ex}'), ::nl('0.5em'),
-        ::run('На № '), ::underscoreFill(HruleSize), ::run(' от '), ::underscoreFill(HruleSize),
+        ::underscore_fill('{18ex}'), ::run('№ '),  ::underscore_fill('{12ex}'), ::nl('0.5em'),
+        ::run('На № '), ::underscore_fill(HruleSize), ::run(' от '), ::underscore_fill(HruleSize),
         %::end(tabularx).
         true.
 
-   :- public(initAffiliationFlat/0).
-   initAffiliationFlat:-
+   :- public(isu_logo/1).
+   isu_logo(Options):-
+		::include_graphics(Options, "isu_logo.png").
+   
+   :- public(init_affiliation_flat/0).
+   init_affiliation_flat:-
         ::cmd(noindent),
         ::begin(center),
-        ::isuLogo('width=17mm'),
-        ::runsLn(['МИНОБРНАУКИ РОССИИ',
+        ::runs_ln(['МИНОБРНАУКИ РОССИИ',
                    'Федеральное государственное бюджетное образовательное учреждение высшего образования',
                    '«Иркутский государственный университет»',
                    '(ФГБОУ ВО «ИГУ»)',
@@ -25,22 +27,22 @@
                    'ОКПО 02068226, ОГРН 1033801008218, ИНН/КПП 3808013278/380801001',
                    '\\texttt{http://www.math.isu.ru}, e-mail: \\texttt{ime@math.isu.ru}']),
         ::vspace('0.7em'),
-        ::letterRegistration('25ex','12ex'),
+        ::letter_registration('25ex','12ex'),
         ::end(center).
 
-   :- public(initAffiliation/0).
-   initAffiliation:-
-        ::initAffiliation([]).
+   :- public(init_affiliation/0).
+   init_affiliation:-
+        ::init_affiliation([]).
 
-   :- public(initAffiliation/1).
-   initAffiliation(Options):-
+   :- public(init_affiliation/1).
+   init_affiliation(Options):-
         ::cmd(noindent),
         ::begin(tblr, ['{width=\\linewidth, colspec={X[6]X[5]}, column{1}={c}}']),
         %::begin(center),
         ::run('{'),
         ::cmd(footnotesize),
-        ::isuLogo('width=13mm'),
-        ::runsLn(['МИНОБРНАУКИ РОССИИ',
+        ::isu_logo('width=13mm'),
+        ::runs_ln(['МИНОБРНАУКИ РОССИИ',
                    'Федеральное государственное бюджетное',
                    'образовательное учреждение',
                    'высшего образования',
@@ -54,7 +56,7 @@
                    '\\texttt{http://www.math.isu.ru},',
                    'e-mail: \\texttt{ime@math.isu.ru}']),
         ::vspace('0.7em'),
-        ::letterRegistration('25ex','12ex'),
+        ::letter_registration('25ex','12ex'),
         %::end(center),
         ::run('}'),
         ::tab,
@@ -94,10 +96,10 @@
 :- protocol(curriculump).
    :- public(course/7).
    :- public(departments/1).
-   :- public(currentStudyYear/1).
-   :- public(startDate/1).
-   :- public(endDate/1).
-   :- public(enrollOrder/2).
+   :- public(current_study_year/1).
+   :- public(start_date/1).
+   :- public(end_date/1).
+   :- public(enroll_jrder/2).
    :- public(specialty/2).
    :- public(institute/1).
    :- public(faculty/1).
@@ -270,10 +272,10 @@
    imports(curriculumc)).
 
    departments([universityISU,etu]).  % Или можно создать 'виртуальный' университет
-   currentStudyYear(2).
-   startDate(2022-09-01).
-   endDate(2024-08-31).
-   enrollOrder(4459/3, 2022-08-21).
+   current_study_year(2).
+   start_date(2022-09-01).
+   end_date(2024-08-31).
+   enroll_order(4459/3, 2022-08-21).
    institute('математики и информационных технологий').
    specialty('01.04.02',
      'Прикладная математика и информатика, профиль «Семантические технологии и многоагентные системы» (уровень магистратуры)').
@@ -322,8 +324,8 @@
                                                                   972/27, 2, credN, 2024-06-2, cea).
 :- end_object.
 
-:- object(notesDocument(_Renderer_, _Notes_, _Student_, _Curriculum_, _SignPerson_),
-   imports([notesc, russianc, optionc,
+:- object(notes_document(_Renderer_, _Notes_, _Student_, _Curriculum_, _SignPerson_),
+   imports([notesc, russianc, options,
             signaturec(_Renderer_, _Curriculum_, _SignPerson_)]),
    extends(imit_document(_Renderer_)),
    implements(documentp)).
@@ -331,14 +333,14 @@
 
    gen:-
         R = _Renderer_,
-        ::initAffiliationFlat,
+        ::init_affiliation_flat,
         R::begin(center),
-        ::subjectDefinition,
+        ::subject_definition,
         R::end(center),
-        R::emptyLine,
-        ::tableHeader,
-        forall(member(Note, _Notes_), ::tableRow(Note)),
-        ::tableFooter,
+        R::empty_line,
+        ::table_header,
+        forall(member(Note, _Notes_), ::table_row(Note)),
+        ::table_footer,
         ::statistics,
         ::signature,
         true.
@@ -371,7 +373,7 @@
         statistics(T, Sum2),
         Sum is Sum1 + Sum2.
 
-   subjectDefinition:-
+   subject_definition:-
         _Renderer_ = R,
         R::run('{'),
         R::cmd([large,bfseries,sffamily]), R::run('Справка об успеваемости за весь период обучения'),
@@ -385,7 +387,7 @@
         R::run(Pronoun),
         R::run(' является студентом '),
         C = _Curriculum_,
-        C::currentStudyYear(StudyYear),
+        C::current_study_year(StudyYear),
         R::run(' {~w} ', [StudyYear]),
         R::run(' курса магистратуры очной формы обучения, обучается по направлению подготовки (специальности) высшего образования '),
         C::specialty(Code, Name),
@@ -405,7 +407,7 @@
    tableHeader:-
         _Renderer_ = R,
         R::cmd('setcounter{mytableline}{0}'),
-        ::longtblrStyle(default),
+        ::longtblr_style(default),
         R::begin(longtblr,[
             '[caption={}]',
             '{',
@@ -414,43 +416,43 @@
         R::run(' \\textbf{№} '), R::tab,
         R::run(' \\textbf{Дисциплина} '), R::tab,
         R::run(' \\textbf{Оценка} '), R::nl,
-        ::resetLineNumber.
+        ::reset_line_number.
 
-   :- protected(tableFooter/0).
-   tableFooter:-
+   :- protected(table_footer/0).
+   table_footer:-
         _Renderer_ = R,
         R::end(longtblr).
 
-   :- protected(tableRow/1).
-   tableRow(Subject-Note) :-
+   :- protected(table_row/1).
+   table_row(Subject-Note) :-
         ::translate(Note, NoteName),
         _Renderer_ = R,
-        ::incNumber(LineNumber),
+        ::inc_number(LineNumber),
         R::run(LineNumber), R::tab,
         _Curriculum_::course(Subject, course(SubjectName), _, _, _, _, _),
         R::run(SubjectName), R::tab,
         R::run(NoteName), R::nl.
 
-   :- protected(resetLineNumber/0).
-   resetLineNumber:-
-        retractall(lineNumber(_)),
-        assertz(lineNumber(0)).
+   :- protected(reset_line_number/0).
+   reset_line_number:-
+        retractall(line_number(_)),
+        assertz(line_number(0)).
 
-   :- private(lineNumber/1).
-   :- dynamic(lineNumber/1).
+   :- private(line_number/1).
+   :- dynamic(line_number/1).
 
-   :- protected(incNumber/1).
-   incNumber(Number):-
-        lineNumber(Num),
+   :- protected(inc_number/1).
+   inc_number(Number):-
+        line_number(Num),
         Number is Num + 1,
-        retractall(lineNumber(_)),
-        assertz(lineNumber(Number)).
+        retractall(line_number(_)),
+        assertz(line_number(Number)).
 
 :- end_object.
 
 
-:- object(referenceDocument(_Renderer_,_Student_, _Curriculum_, _SignPerson_),
-   imports([notesc, russianc, optionc,
+:- object(reference_document(_Renderer_,_Student_, _Curriculum_, _SignPerson_),
+   imports([notesc, russianc, options,
             signaturec(_Renderer_, _Curriculum_, _SignPerson_)]),
    extends(imit_document(_Renderer_)),
    implements(documentp)).
@@ -460,7 +462,7 @@
    gen:-
         R = _Renderer_,
         self(Self),
-        ::initAffiliation([right=Self::right]),
+        ::init_affiliation([right=Self::right]),
         % R::emptyLine,
         R::begin(center),
         R::run('Справка дана для предъявления {\\bfseries по месту требования}'),
@@ -484,11 +486,11 @@
 
    :- public(right/0).
    right:-
-        ::subjectDefinition.
+        ::subject_definition.
 
    % :- use_module(library(option), [option/2 as locoption]).
 
-   subjectDefinition:-
+   subject_definition:-
         _Renderer_ = R,
         R::run('{'),
         R::cmd([bfseries,sffamily,centering]), R::run('СПРАВКА'), R::par,
@@ -538,7 +540,7 @@
 :- end_object.
 
 
-:- object(potaninDocuments(_Renderer_, _Notes_, _StudentGroup_, _Curriculum_, _SignPerson_),
+:- object(potanin_documents(_Renderer_, _Notes_, _StudentGroup_, _Curriculum_, _SignPerson_),
    extends(documents(_Renderer_)),
    imports(notesc)).
 
@@ -549,12 +551,12 @@
                 _StudentGroup_::element(Person, student(PersonName, Gender, PersonAge))),
                (
                 _Renderer_::newpage,
-                notesDocument(_Renderer_, Notes,
+                notes_document(_Renderer_, Notes,
                     student(Person, PersonName, Gender, PersonAge),
                     _Curriculum_, _SignPerson_
                 )::gen,
                 _Renderer_::newpage,
-                referenceDocument(_Renderer_,
+                reference_document(_Renderer_,
                     student(Person, PersonName, Gender, PersonAge),
                     _Curriculum_, _SignPerson_
                 )::gen,
@@ -562,5 +564,5 @@
                 % format('~w\n', [student(Person, PersonName, Gender, PersonAge)]),
                 true)
         ),
-        ::end,
+        ::end.
 :- end_object.
