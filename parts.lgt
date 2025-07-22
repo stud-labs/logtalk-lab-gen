@@ -49,10 +49,17 @@
       argnames is ['ParentDepartement']
    ]).
 
+   :- public(type/1).
+   :- mode(type(-object), zero_or_one).
+   :- info(type/1, [
+      comment is 'Defines type of departement: institute, chair, etc.',
+      argnames is ['TypeOfDepartment']
+   ]).
+
 :- end_protocol.
 
 :- category(departmentc,
-   extends([partsc, options])).
+   extends([partsc, eoptions])).
 
    :- info([
        version is 1:0:0,
@@ -68,7 +75,7 @@
    ]).
 
    draw_department_title(centering, Options) :-
-	   (::option(logo(departments), Options) ->
+	   (::eoption(logo(document), Options) ->
 		 ::draw_company_logo(centering, Options); true),
       ::renderer(R),
       R::begin(center),
@@ -94,7 +101,7 @@
       ::renderer(R),
       R::begin(center),
       R::include_graphics(Opts, LogoFileName),
-		(::option(vskip(logo, Size), Options)->
+		(::eoption(vskip(logo, Size), Options)->
 		 R::vspace(Size); true),
       R::end(center).
 
@@ -102,12 +109,14 @@
 
 	draw_title(Department, Renderer, Options) :-
 		Department::title(Title), !,
-      (::option(upcase(departments), Options) ->
+		% debugger::trace,
+		(Department::type(Type) -> true; Type=department),
+      (::eoption(upcase(Type), Options) ->
 			upcase_atom(Title, UTitle); UTitle = Title),
-      (::option(add_line(departments), Options),
+      (::eoption(add_line(Type), Options),
 		 Department::parent(_)
 		 ->
-		 ::option(vskip(departments, Skip), Options, vskip(departments, '0.7em')),
+		 ::eoption(vskip(Type, Skip), Options, vskip(Type, '0.7em')),
 		 Renderer::vspace(Skip)
 		 ;
 		 true),

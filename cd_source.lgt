@@ -67,6 +67,8 @@
 	title(Name) :-
  		sql_connection::query('SELECT RUPMinistry FROM дсПараметрыПлана;', row(Name)),!.
 
+	type(ministry).
+
 :- end_object.
 
 :- object(cd_department(_Code_),
@@ -82,6 +84,8 @@
 	title(Name) :-
 		query(row(Name)).
 
+	type(department).
+
 	query(Row) :-
 		sql_connection::query(
 				'SELECT Полноеназвание FROM дсФилиалы WHERE Головноеучреждение == 1;',
@@ -94,6 +98,7 @@
 	extends(cd_department(_Code_))).
 
 	parent(cd_ministry).
+	type(university).
 
 :- end_object.
 
@@ -106,9 +111,22 @@
 	title(Name) :-
 		query(row(Name, _)).
 
+	type(institute).
+
 	query(Row) :-
 		sql_connection::query(
 				'SELECT Полноеназвание, вкРодителя FROM дсФилиалы WHERE Головноеучреждение != 1;',
 				Row),!.
+
+:- end_object.
+
+:- object(cd_chair,
+	implements(departmentp)).
+
+	parent(cd_institute).
+
+	title("Test chair").
+
+	type(chair).
 
 :- end_object.

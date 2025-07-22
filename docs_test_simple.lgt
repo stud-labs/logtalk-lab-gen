@@ -54,19 +54,34 @@
 
 	% department(departement_imit).
 	company_logo('isu-logo.png', [width='1.5cm']).
-	department(cd_institute).
+
+	department(cd_chair).
 
 	draw:-
 		::draw(plain,
-			[add_line(departments),
-			upcase(departments),
-			vskip(departments, '0.3em'),
-			vskip(after_logo, '0.3em'),
-			logo(departments)
+			[
+				add_line(ministry),
+				vskip(ministry, '0.3em'),
+				upcase(ministry),
+
+				add_line(university),
+				vskip(university, '0.3em'),
+				upcase(university),
+
+				add_line(institute),
+				vskip(institute, '0.3em'),
+				upcase(institute),
+
+				add_line(department),
+				upcase(department),
+				vskip(department, '0.3em'),
+
+				short_names(organization), % Did not implemented
+				logo(document),
+				vskip(after_logo, '0.3em')
 			]).
 
 	draw(plain, Options) :-
-		% debugger::trace,
 		% ^^draw_company_logo(centering, Options),
 		^^draw_department_title(centering, Options).
 

@@ -7,17 +7,46 @@
 	:- protected(company_logo/2).
 :- end_protocol.
 
+:- category(eoptions).
+
+   :- public(eoption/2).
+   :- mode(eoption(+atopm, +list), zero_or_more).
+   :- info(eoption/2, [
+      comment is 'Behaves as standard option/2, but respects repetative options.',
+      argnames is ['Option', 'ListOfOptions']
+   ]).
+
+	:- use_module(library(lists), [member/2]).
+
+	eoption(Option, Options) :-
+   	member(Option, Options), !.
+
+   :- public(eoption/3).
+   :- mode(eoption(+atom, +list, +atom), zero_or_more).
+   :- info(eoption/3, [
+      comment is 'Behaves as standard option/3 (with default), but respects repetative options.',
+      argnames is ['Option', 'ListOfOptions', 'DefaultOption']
+   ]).
+
+	eoption(Option, Options, _) :-
+   	member(Option, Options), !.
+
+	eoption(Default, Options, Default).
+
+:- end_category.
+
+
 :- category(russianc,
-	extends(options)).
+	extends(eoptions)).
 	:- public(choice/3).
 	choice(Gender, Variants, Variant):-
 		Query =.. [Gender, Variant],
-		::option(Query,Variants).
+		::eoption(Query,Variants),!.
 :- end_category.
 
 
 :- object(latex_renderer(_FileName_),
-	imports(options)).
+	imports(eoptions)).
 	:- use_module(library(lists), [member/2]).
 
 	:- public(file_name/1).
