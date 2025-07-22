@@ -125,7 +125,16 @@
 
 	parent(cd_institute).
 
-	title("Test chair").
+	title(S) :-
+		query(row(Name)),
+		downcase_atom(Name, DName),
+		format(atom(S), 'Кафедра ~w', [DName]).
+
+	query(Row) :-
+		% debugger::trace,
+		sql_connection::query(
+			'SELECT К.Название FROM дсПрофили as П JOIN дсКафедры as К ON П.вкПодразделения = К.пк;',
+			Row), !.
 
 	type(chair).
 

@@ -7,7 +7,7 @@
 	:- protected(company_logo/2).
 :- end_protocol.
 
-:- category(eoptions).
+:- category(exoptions).
 
    :- public(option/2).
    :- mode(option(+atopm, +list), zero_or_more).
@@ -31,13 +31,13 @@
 	option(Option, Options, _) :-
    	member(Option, Options), !.
 
-	eoption(Default, Options, Default).
+	option(Default, Options, Default).
 
 :- end_category.
 
 
 :- category(russianc,
-	extends(eoptions)).
+	extends(exoptions)).
 	:- public(choice/3).
 	choice(Gender, Variants, Variant):-
 		Query =.. [Gender, Variant],
@@ -46,7 +46,7 @@
 
 
 :- object(latex_renderer(_FileName_),
-	imports(eoptions)).
+	imports(exoptions)).
 	:- use_module(library(lists), [member/2]).
 
 	:- public(file_name/1).

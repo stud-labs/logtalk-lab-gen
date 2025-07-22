@@ -50,16 +50,16 @@
    ]).
 
    :- public(type/1).
-   :- mode(type(-object), zero_or_one).
+   :- mode(type(-object), zero_or_more).
    :- info(type/1, [
-      comment is 'Defines type of departement: institute, chair, etc.',
+      comment is 'Defines types of departement: institute, chair, etc.',
       argnames is ['TypeOfDepartment']
    ]).
 
 :- end_protocol.
 
 :- category(departmentc,
-   extends([partsc, eoptions])).
+   extends([partsc, exoptions])).
 
    :- info([
        version is 1:0:0,
