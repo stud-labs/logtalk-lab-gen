@@ -24,6 +24,18 @@
 
 :- end_object.
 
+
+:- object(approval,
+	implements(approvalp),
+	imports(approvalc)).
+
+	short_name('И. И. Иванов').
+	position('директор организации').
+	year_field('20', true, 'г.').
+
+:- end_object.
+
+
 :- object(institute_imit,
 	implements(departmentp)).
 
@@ -36,7 +48,7 @@
 
 :- object(test_doc(_Renderer_),
 	extends(document(_Renderer_)),
-	imports(departmentc)).
+	imports([departmentc, approvalc])).
 
 	:- info([
 		version is 1:0:0,
@@ -56,6 +68,7 @@
 	company_logo('isu-logo.png', [width='1.5cm']).
 
 	department(cd_chair).
+	approval(approval).
 
 	draw:-
 		::draw(plain,
@@ -83,7 +96,8 @@
 
 	draw(plain, Options) :-
 		% ^^draw_company_logo(centering, Options),
-		^^draw_department_title(centering, Options).
+		^^draw_department_title(centering, Options),
+		^^draw_approval(semicentered, Options).
 
    :- public(connect_db/0).
    :- mode(connect_db, zero_or_one).

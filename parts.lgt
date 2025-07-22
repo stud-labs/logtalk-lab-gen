@@ -58,6 +58,31 @@
 
 :- end_protocol.
 
+:- protocol(approvalp).
+
+   :- public(short_name/1).
+   :- mode(short_name(-atom), zero_or_one).
+   :- info(short_name/1, [
+      comment is 'Approval person short name. И.И.Ванов',
+      argnames is ['PersonName']
+   ]).
+
+   :- public(position/1).
+   :- mode(position(-atom), zero_or_one).
+   :- info(position/1, [
+      comment is 'Approval person work position',
+      argnames is ['WorkPosition']
+   ]).
+
+	:- public(year_field/3).
+   :- mode(year_field(-atom, -atom, -atom), zero_or_one).
+   :- info(year_field/3, [
+      comment is 'Year stub, like 20 __ г',
+      argnames is ['YearDigits', 'PlaceholderNeeded', 'YearWord']
+   ]).
+
+:- end_protocol.
+
 :- category(departmentc,
    extends([partsc, exoptions])).
 
@@ -134,5 +159,40 @@
 		draw_title(Parent, Renderer, Options).
 
    draw_parents(_, _, _).
+
+:- end_category.
+
+:- category(approvalc,
+   extends([partsc, exoptions])).
+
+   :- info([
+       version is 1:0:0,
+       author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+       date is 2025-07-23,
+       comment is 'Category drawing headers of documants'
+   ]).
+   :- public(draw_approval/2).
+   :- mode(draw_approval(+atom, +list), zero_or_one).
+   :- info(draw_approval/2, [
+      comment is 'Draw approval',
+      argnames is ['ModeOfRendering', 'OptionsOfRendering']
+   ]).
+
+   draw_approval(semicentered, _Options) :-
+      ::renderer(R),
+		::approval(App),
+		App::short_name(Name),
+		App::year_field(Y, U, YS),
+		App::position(Position), !,
+      R::begin(center),
+		R::run('Утверждаю'),
+      R::end(center),
+		R::run_ln(Position),
+		R::run_ln(Name),
+		R::run("'--' ------ ~w ", [Y]),
+		(U == true -> R::run('--'); true),
+		(YS \= '' -> R::run(' '), R::run(YS); true).
+
+	% draw_approval(_, _).
 
 :- end_category.

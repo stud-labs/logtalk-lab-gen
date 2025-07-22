@@ -5,6 +5,7 @@
 	:- protected(title/0).
 	:- protected(signature/0).
 	:- protected(company_logo/2).
+	:- protected(approval/1).
 :- end_protocol.
 
 :- category(exoptions).
@@ -96,7 +97,7 @@
 	run(String):-
 		% sanl(String),!,
 		::output_stream(O),
-		format(O, '~w~n', [String]).
+		format(O, '~w', [String]).
 
 	run([]).
 	run([S|T]):-
