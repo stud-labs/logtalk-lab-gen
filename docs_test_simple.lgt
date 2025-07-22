@@ -53,16 +53,21 @@
 	]).
 
 	% department(departement_imit).
+	company_logo('isu-logo.png', [width='1.5cm']).
 	department(cd_institute).
 
 	draw:-
 		::draw(plain,
 			[add_line(departments),
 			upcase(departments),
-			vskip(departments, '0.3em')]).
+			vskip(departments, '0.3em'),
+			vskip(after_logo, '0.3em'),
+			logo(departments)
+			]).
 
 	draw(plain, Options) :-
 		% debugger::trace,
+		% ^^draw_company_logo(centering, Options),
 		^^draw_department_title(centering, Options).
 
    :- public(connect_db/0).

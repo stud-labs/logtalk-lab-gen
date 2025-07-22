@@ -61,13 +61,15 @@
        comment is 'Category drawing headers of documants'
    ]).
    :- public(draw_department_title/2).
-   :- mode(draw_department_title(-atom, -list), zero_or_one).
+   :- mode(draw_department_title(+atom, +list), zero_or_one).
    :- info(draw_department_title/2, [
       comment is 'Draw the title of the department',
       argnames is ['ModeOfRendering', 'OptionsOfRendering']
    ]).
 
    draw_department_title(centering, Options) :-
+	   (::option(logo(departments), Options) ->
+		 ::draw_company_logo(centering, Options); true),
       ::renderer(R),
       R::begin(center),
       ::draw_title_stack(Options),
@@ -80,6 +82,23 @@
        argnames is ['ListOfOptions']
    ]).
 
+   :- public(draw_company_logo/2).
+   :- mode(draw_company_logo(+atom, +list), zero_or_one).
+   :- info(draw_company_logo/2, [
+      comment is 'Add company logo according to argunet values',
+      argnames is ['ModeOfRendering', 'OptionsOfRendering']
+   ]).
+
+   draw_company_logo(centering, Options) :-
+		::company_logo(LogoFileName, Opts),!,
+      ::renderer(R),
+      R::begin(center),
+      R::include_graphics(Opts, LogoFileName),
+		(::option(vskip(logo, Size), Options)->
+		 R::vspace(Size); true),
+      R::end(center).
+
+	draw_company_logo(_, _).
 
 	draw_title(Department, Renderer, Options) :-
 		Department::title(Title), !,

@@ -4,6 +4,7 @@
 	:- protected(main_subject/0).
 	:- protected(title/0).
 	:- protected(signature/0).
+	:- protected(company_logo/2).
 :- end_protocol.
 
 :- category(russianc,
@@ -181,7 +182,7 @@
 
 	:- public(include_graphics/2).
 	include_graphics(Options, Filename):-
-		run_ln('\\includegraphics[~w]{~w}',[Options, Filename]).
+		run_ln('\\includegraphics~w{~w}',[Options, Filename]).
 
 	:- public(style_config/0).
 	style_config:-
@@ -237,7 +238,8 @@
 :- end_object.
 
 
-:- object(document(_Renderer_)).
+:- object(document(_Renderer_),
+	implements(documentp)).
 
 	:- info([
 		 version is 1:0:0,
