@@ -75,7 +75,7 @@
    ]).
 
    draw_department_title(centering, Options) :-
-	   (::eoption(logo(document), Options) ->
+	   (::option(logo(document), Options) ->
 		 ::draw_company_logo(centering, Options); true),
       ::renderer(R),
       R::begin(center),
@@ -101,7 +101,7 @@
       ::renderer(R),
       R::begin(center),
       R::include_graphics(Opts, LogoFileName),
-		(::eoption(vskip(logo, Size), Options)->
+		(::option(vskip(logo, Size), Options)->
 		 R::vspace(Size); true),
       R::end(center).
 
@@ -111,12 +111,12 @@
 		Department::title(Title), !,
 		% debugger::trace,
 		(Department::type(Type) -> true; Type=department),
-      (::eoption(upcase(Type), Options) ->
+      (::option(upcase(Type), Options) ->
 			upcase_atom(Title, UTitle); UTitle = Title),
-      (::eoption(add_line(Type), Options),
+      (::option(add_line(Type), Options),
 		 Department::parent(_)
 		 ->
-		 ::eoption(vskip(Type, Skip), Options, vskip(Type, '0.7em')),
+		 ::option(vskip(Type, Skip), Options, vskip(Type, '0.7em')),
 		 Renderer::vspace(Skip)
 		 ;
 		 true),

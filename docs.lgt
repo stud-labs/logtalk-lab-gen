@@ -9,26 +9,26 @@
 
 :- category(eoptions).
 
-   :- public(eoption/2).
-   :- mode(eoption(+atopm, +list), zero_or_more).
-   :- info(eoption/2, [
+   :- public(option/2).
+   :- mode(option(+atopm, +list), zero_or_more).
+   :- info(option/2, [
       comment is 'Behaves as standard option/2, but respects repetative options.',
       argnames is ['Option', 'ListOfOptions']
    ]).
 
 	:- use_module(library(lists), [member/2]).
 
-	eoption(Option, Options) :-
+	option(Option, Options) :-
    	member(Option, Options), !.
 
-   :- public(eoption/3).
-   :- mode(eoption(+atom, +list, +atom), zero_or_more).
-   :- info(eoption/3, [
+   :- public(option/3).
+   :- mode(option(+atom, +list, +atom), zero_or_more).
+   :- info(option/3, [
       comment is 'Behaves as standard option/3 (with default), but respects repetative options.',
       argnames is ['Option', 'ListOfOptions', 'DefaultOption']
    ]).
 
-	eoption(Option, Options, _) :-
+	option(Option, Options, _) :-
    	member(Option, Options), !.
 
 	eoption(Default, Options, Default).
@@ -41,7 +41,7 @@
 	:- public(choice/3).
 	choice(Gender, Variants, Variant):-
 		Query =.. [Gender, Variant],
-		::eoption(Query,Variants),!.
+		::option(Query,Variants),!.
 :- end_category.
 
 
