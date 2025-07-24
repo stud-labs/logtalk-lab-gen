@@ -302,3 +302,5 @@ TSWLatexianTemp*
 doc-*.pdf
 doc-*.tex
 .lgt_tmp
+/docs_test_simple.tex
+/docs_test_simple.pdf
