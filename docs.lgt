@@ -374,7 +374,6 @@
 		R::run('% ERROR: ~w', [Text]).
 :- end_category.
 
-
 :- category(long_tblrc).
 
 	:- public(longtblr_style/0).
@@ -402,3 +401,39 @@
 		R::end(longtblr).
 
 :- end_category.
+
+:- object(tabularx(_Renderer_, _Options_),
+   imports(exoptions)).
+
+	:- public(begin/3).
+	:- mode(begin(+atom, +atom, +list), one).
+	:- info(begin/3, [
+		comment is 'draw tablarx header',
+		argnames is ['Width', 'ColumnDefinition', 'ListOfOptions']
+	]).
+
+	begin(Width, Columns) :-
+		R = _Renderer_,
+		format(atom(Args), '{~w}{~w}', [Width, Columns]),
+		R::begin(tablarx, Args).
+
+	:- public(endrow/0).
+	:- mode(endrow, one).
+	:- info(endrow/0, [
+		comment is 'Ends row'
+	]).
+
+	endrow :-
+		row
+
+	:- public(end/0).
+	:- mode(end, one).
+	:- info(end/0, [
+		comment is 'Finishes tabularx environment',
+		argnames is []
+	]).
+
+	end :-
+		_Renderer_::end(tabularx).
+
+:- end_object.
