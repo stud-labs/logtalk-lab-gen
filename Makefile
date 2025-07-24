@@ -1,4 +1,4 @@
-.PHONY: clean resp
+.PHONY: clean resp view
 
 TARGET=docs_test_simple
 SRC=docs.lgt parts.lgt docs_test_simple.lgt loader.lgt cd_source.lgt
@@ -7,6 +7,9 @@ resp: $(TARGET).pdf
 
 %.pdf: %.tex
 	test -f $< && lualatex --halt-on-error $<
+
+view: resp
+	evince $(TARGET).pdf &
 
 $(TARGET).tex: $(SRC) Makefile
 	swilgt -l loader.lgt -g halt

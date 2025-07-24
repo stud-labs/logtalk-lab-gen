@@ -184,14 +184,26 @@
 		App::short_name(Name),
 		App::year_field(Y, U, YS),
 		App::position(Position), !,
+		T = tabularx(R, []),
+		T::begin('\\linewidth','XXX'),
+		T::tab, T::tab,
       R::begin(center),
 		R::run('Утверждаю'),
       R::end(center),
-		R::run_ln(Position),
-		R::run_ln(Name),
-		R::run("'--' ------ ~w ", [Y]),
-		(U == true -> R::run('--'); true),
-		(YS \= '' -> R::run(' '), R::run(YS); true).
+		R::run(Position), R::par,
+		R::underscore_fill('3cm'),
+		R::nbsp,
+		R::run(Name), R::par,
+		R::run('"~~'), R::underscore_fill('5mm'),
+		R::run('~~"~~'), R::underscore_fill('2cm'),
+		R::run('~~'),
+		R::run('~w', [Y]),
+		R::run('~~'),
+		(U == true -> R::underscore_fill('5mm'); true),
+		(YS \= '' -> R::run('~~'), R::run(YS); true),
+		T::endrow,
+		T::end,
+		true.
 
 	% draw_approval(_, _).
 

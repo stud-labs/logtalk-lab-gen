@@ -97,7 +97,7 @@
 	run(String):-
 		% sanl(String),!,
 		::output_stream(O),
-		format(O, '~w', [String]).
+		format(O, String, []).
 
 	run([]).
 	run([S|T]):-
@@ -139,9 +139,29 @@
 		format(atom(S), 'end{~w}', [Environment]),
 		::cmd(S).
 
+	:- public(run_ln/0).
+	:- mode(run_ln, one).
+	:- info(run_ln/0, [
+		comment is 'Add to the target text just newline'
+	]).
+
+	run_ln :-
+		::output_stream(O),
+		format(O,'~n').
+
+	:- public(nbsp/0).
+	:- mode(nbsp, one).
+	:- info(nbsp/0, [
+		comment is 'Put non-breakable-sign'
+	]).
+
+	nbsp :-
+		 run('~~').
+
 	:- public(nl/0).
 	nl:-
-	 run_ln('').
+	 run_ln('\\\\~n').
+
 	:- public(nl/1).
 	nl(Size):-
 		::output_stream(O),
@@ -405,17 +425,17 @@
 :- object(tabularx(_Renderer_, _Options_),
    imports(exoptions)).
 
-	:- public(begin/3).
-	:- mode(begin(+atom, +atom, +list), one).
-	:- info(begin/3, [
+	:- public(begin/2).
+	:- mode(begin(+atom, +atom), one).
+	:- info(begin/2, [
 		comment is 'draw tablarx header',
-		argnames is ['Width', 'ColumnDefinition', 'ListOfOptions']
+		argnames is ['Width', 'ColumnDefinition']
 	]).
 
 	begin(Width, Columns) :-
 		R = _Renderer_,
 		format(atom(Args), '{~w}{~w}', [Width, Columns]),
-		R::begin(tablarx, Args).
+		R::begin(tabularx, Args).
 
 	:- public(endrow/0).
 	:- mode(endrow, one).
@@ -424,7 +444,31 @@
 	]).
 
 	endrow :-
-		row
+		R = _Renderer_,
+		R::nl,
+		(::option(hline(tabular), _Options_) ->
+			::hline, R::nl ;
+		true).
+
+	:- public(hline/0).
+	:- mode(hline, one).
+	:- info(hline/0, [
+		comment is 'Add hline to the table'
+	]).
+
+	hline :-
+		_Renderer_::cmd(hline),
+		_Renderer_::run_ln.
+
+
+	:- public(tab/0).
+	:- mode(tab, one).
+	:- info(tab/0, [
+		comment is 'Add tab character, a column divisor'
+	]).
+
+	tab :-
+		 _Renderer_::run(" & ").
 
 	:- public(end/0).
 	:- mode(end, one).
