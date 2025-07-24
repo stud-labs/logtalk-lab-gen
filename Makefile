@@ -1,7 +1,7 @@
 .PHONY: clean resp
 
 TARGET=docs_test_simple
-SRC=docs.lgt parts.lgt docs_test_simple.lgt loader.lgt
+SRC=docs.lgt parts.lgt docs_test_simple.lgt loader.lgt cd_source.lgt
 
 resp: $(TARGET).pdf
 
