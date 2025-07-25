@@ -94,10 +94,16 @@
 		::run('\\~w ', [Cmd]).
 
 	:- public(run/1).
-	run(String):-
-		% sanl(String),!,
+	run(Number):-
+		number(Number), !,
 		::output_stream(O),
-		format(O, String, []).
+		format(O, '~w', [Number]),
+		true.
+
+	run(String):-
+		::output_stream(O),
+		format(O, String, []),
+		true.
 
 	run([]).
 	run([S|T]):-
@@ -147,7 +153,7 @@
 
 	run_ln :-
 		::output_stream(O),
-		format(O,'~n').
+		format(O,'~n', []).
 
 	:- public(nbsp/0).
 	:- mode(nbsp, one).

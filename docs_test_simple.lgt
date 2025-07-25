@@ -94,13 +94,31 @@
 				vspace(after_logo, '0.3em'),
 
 				vspace(approval, '0.7em'),
-				title(approval, 'УТВЕРЖДАЮ')
+				title(approval, 'УТВЕРЖДАЮ'),
+
+				city('Иркутск', 2025)
 			]).
 
 	draw(plain, Options) :-
 		% ^^draw_company_logo(centering, Options),
 		^^draw_department_title(centering, Options),
-		^^draw_approval(semicentered, Options).
+		^^draw_approval(semicentered, Options),
+		::draw_city(Options).
+
+	:- protected(draw_city/1).
+	:- mode(draw_city(+list), one).
+	:- info(draw_city/1, [
+		comment is 'Draw City -- Year at the end of the first page'
+	]).
+
+	draw_city(Options) :-
+		::renderer(R),
+		(::option(city(City, Year), Options) ->
+			R::cmd(vfill),
+			R::begin(center),
+			R::run(City), R::run('~~--~~'), R::run(Year),
+			R::run_ln,
+			R::end(center); true ).
 
    :- public(connect_db/0).
    :- mode(connect_db, zero_or_one).
