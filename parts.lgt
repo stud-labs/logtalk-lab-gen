@@ -219,3 +219,48 @@
 	% draw_approval(_, _).
 
 :- end_category.
+
+
+:- category(cdc,
+   extends([partsc, exoptions])).
+
+	:- public(draw_cd_document_type/1).
+	:- mode(draw_cd_document_type(+list), zero_or_one).
+	:- info(draw_cd_document_type/1, [
+		comment is 'Draws document type',
+		argnames is ['ListOfOptions']
+	]).
+
+	draw_cd_document_type(Options) :-
+		::renderer(R),
+		::option(vspace(cd_type, Size), Options, vspace(cd_type, '0.7em')),
+		R::begin(center),
+		R::boldface(
+			R::run('Рабочая программа дисциплины (модуля)')),
+		R::nl(Size),
+		T = tabularx(R, Options),
+		T::begin('\\linewidth', 'lp{1em}X'),
+		R::run('Наименование дисциплины (модуля)'),
+		T::tab, T::tab,
+		R::run('asdasd'),
+		T::endrow,
+		T::end,
+		R::end(center).
+
+
+
+% Б1.В.ДВ.01.01 Основы инженерного
+% творчества
+% (индекс дисциплины по учебному плану, наименование дисциплины
+% (модуля))
+% Направление подготовки:
+% 01.03.02 Прикладная математика и
+% информатика
+% (код, наименование направления подготовки)
+% Направленность (профиль) подготовки:
+% Искусственный интеллект и системная
+% аналитика
+% Квалификация выпускника: бакалавр
+% Форма обучения: очная
+
+:- end_category.

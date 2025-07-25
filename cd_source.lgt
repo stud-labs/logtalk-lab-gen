@@ -147,7 +147,7 @@
 	short_name(Name) :-
 		query(row(_, Name)).
 	position(Position) :-
-		query(row(Positionm, _)).
+		query(row(Position, _)).
 
 	year_field('20', true, 'г.').
 

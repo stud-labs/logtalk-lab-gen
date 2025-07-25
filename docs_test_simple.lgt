@@ -48,7 +48,7 @@
 
 :- object(test_doc(_Renderer_),
 	extends(document(_Renderer_)),
-	imports([departmentc, approvalc])).
+	imports([departmentc, approvalc, cdc])).
 
 	:- info([
 		version is 1:0:0,
@@ -96,6 +96,8 @@
 				vspace(approval, '0.7em'),
 				title(approval, 'УТВЕРЖДАЮ'),
 
+				vspace(cd_type, '1em'),
+
 				city('Иркутск', 2025)
 			]).
 
@@ -103,6 +105,7 @@
 		% ^^draw_company_logo(centering, Options),
 		^^draw_department_title(centering, Options),
 		^^draw_approval(semicentered, Options),
+		^^draw_cd_document_type(Options),
 		::draw_city(Options).
 
 	:- protected(draw_city/1).

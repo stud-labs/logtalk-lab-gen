@@ -197,6 +197,18 @@
 			format(O,'\\vspace{~w}~n',[Size])
 		; true).
 
+	:- public(boldface/1).
+	:- meta_predicate(boldface(0)).
+	boldface(Goal):-
+		::other_face(bfseries, Goal).
+
+	:- public(other_face/2).
+	:- meta_predicate(other_face(*, 0)).
+	other_face(Face, Goal) :-
+		::run("{"), ::cmd(Face),
+		call(Goal),
+		::run("}").
+
 	:- public(empty_line/0).
 	empty_line:-
 		vspace('1em').
