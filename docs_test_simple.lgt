@@ -68,7 +68,7 @@
 	company_logo('isu-logo.png', [width='1.5cm']).
 
 	department(cd_chair).
-	approval(approval).
+	approval(cd_approval).
 
 	draw:-
 		::draw(plain,
@@ -127,9 +127,9 @@
    ]).
 
 	connect_db :-
-%		sql_connection::connect("/home/eugeneai/projects/text/docent/isu/2025/cirricullum-2025/pmi", _).
+		sql_connection::connect("/home/eugeneai/projects/text/docent/isu/2025/cirricullum-2025/pmi", _).
 %		sql_connection::connect("/home/eugeneai/projects/text/docent/isu/2025/cirricullum/pmi", _).
-		sql_connection::connect("/home/eugeneai/projects/text/docent/isu/2025/dev/cirricullum-2025/pmi", _).
+%		sql_connection::connect("/home/eugeneai/projects/text/docent/isu/2025/dev/cirricullum-2025/pmi", _).
 
 	:- initialization(::connect_db).
 
