@@ -74,24 +74,27 @@
 		::draw(plain,
 			[
 				add_line(ministry),
-				vskip(ministry, '0.3em'),
+				vspace(ministry, '0.3em'),
 				upcase(ministry),
 
 				add_line(university),
-				vskip(university, '0.3em'),
+				vspace(university, '0.3em'),
 				upcase(university),
 
 				add_line(institute),
-				vskip(institute, '0.3em'),
+				vspace(institute, '0.3em'),
 				upcase(institute),
 
 				add_line(department),
 				upcase(department),
-				vskip(department, '0.3em'),
+				vspace(department, '0.3em'),
 
 				short_names(organization), % Did not implemented
 				logo(document),
-				vskip(after_logo, '0.3em')
+				vspace(after_logo, '0.3em'),
+
+				vspace(approval, '0.7em'),
+				title(approval, 'УТВЕРЖДАЮ')
 			]).
 
 	draw(plain, Options) :-

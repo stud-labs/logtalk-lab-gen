@@ -165,7 +165,11 @@
 	:- public(nl/1).
 	nl(Size):-
 		::output_stream(O),
-		format(O,'\\\\[~w]~n',[Size]).
+		(Size \= none ->
+			format(O,'\\\\[~w]~n',[Size])
+			;
+			format(O,'\\\\~n', [])
+		).
 
 	:- public(par/0).
 	par:-
@@ -173,10 +177,19 @@
 		::output_stream(O),
 		format(O,'\n',[]).
 
+	:- public(par/1).
+	par(Size):-
+		::cmd(par),
+		::vspace(Size),
+		::output_stream(O),
+		format(O,'\n',[]).
+
 	:- public(vspace/1).
 	vspace(Size):-
-		::output_stream(O),
-		format(O,'\\vspace{~w}~n',[Size]).
+		(Size \= none ->
+			::output_stream(O),
+			format(O,'\\vspace{~w}~n',[Size])
+		; true).
 
 	:- public(empty_line/0).
 	empty_line:-
@@ -201,6 +214,13 @@
 	:- public(underscore_fill/1).
 	underscore_fill(Size):-
 		::run('\\makebox[~w]{\\hrulefill}',[Size]).
+
+	:- public(makebox/2).
+	:- meta_predicate(makebox(*, 0)).
+	makebox(Size, Goal):-
+		::run('\\makebox[~w]{',[Size]),
+		call(Goal),
+		::run('}').
 
 	:- public(tab/0).
 	tab:-

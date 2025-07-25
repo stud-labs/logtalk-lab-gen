@@ -126,7 +126,7 @@
       ::renderer(R),
       R::begin(center),
       R::include_graphics(Opts, LogoFileName),
-		(::option(vskip(logo, Size), Options)->
+		(::option(vspace(logo, Size), Options)->
 		 R::vspace(Size); true),
       R::end(center).
 
@@ -141,7 +141,7 @@
       (::option(add_line(Type), Options),
 		 Department::parent(_)
 		 ->
-		 ::option(vskip(Type, Skip), Options, vskip(Type, '0.7em')),
+		 ::option(vspace(Type, Skip), Options, vspace(Type, '0.7em')),
 		 Renderer::vspace(Skip)
 		 ;
 		 true),
@@ -178,29 +178,40 @@
       argnames is ['ModeOfRendering', 'OptionsOfRendering']
    ]).
 
-   draw_approval(semicentered, _Options) :-
+   draw_approval(semicentered, Options) :-
       ::renderer(R),
 		::approval(App),
 		App::short_name(Name),
 		App::year_field(Y, U, YS),
 		App::position(Position), !,
 		T = tabularx(R, []),
+		::option(vspace(approval, SkipSize), Options, vspace(approval, none)),
 		T::begin('\\linewidth','XXX'),
 		T::tab, T::tab,
       R::begin(center),
-		R::run('Утверждаю'),
+		::option(title(approval, AppTitle), Options, title(approval, 'Утверждаю')),
+		R::run(AppTitle),
+		R::vspace('-1em'),
+		R::vspace(SkipSize),
       R::end(center),
-		R::run(Position), R::par,
-		R::underscore_fill('3cm'),
-		R::nbsp,
-		R::run(Name), R::par,
-		R::run('"~~'), R::underscore_fill('5mm'),
-		R::run('~~"~~'), R::underscore_fill('2cm'),
-		R::run('~~'),
-		R::run('~w', [Y]),
-		R::run('~~'),
-		(U == true -> R::underscore_fill('5mm'); true),
-		(YS \= '' -> R::run('~~'), R::run(YS); true),
+		R::run(Position),
+		R::par(SkipSize),
+		R::cmd(noindent),
+		R::makebox('\\linewidth',
+			(R::cmd(hrulefill),
+			 R::nbsp,
+			 R::run(Name))
+		),
+		R::par(SkipSize),
+		R::makebox('\\linewidth',
+			(R::run('"~~'), R::underscore_fill('5mm'),
+			 R::run('~~"~~'), R::cmd(hrulefill),
+			 R::run('~~'),
+			 R::run('~w', [Y]),
+			 R::run('~~'),
+			 (U == true -> R::underscore_fill('5mm'); true),
+			 (YS \= '' -> R::run('~~'), R::run(YS); true))
+		),
 		T::endrow,
 		T::end,
 		true.
