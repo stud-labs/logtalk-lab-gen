@@ -60,6 +60,13 @@
 
 :- protocol(approvalp).
 
+	:- public(type_title/1).
+	:- mode(type_title(-atom), zero_or_one).
+	:- info(type_title/1, [
+		comment is 'Approval title like УТВЕРЖДАЮ',
+		argnames is ['ApprovalTitle']
+	]).
+
    :- public(short_name/1).
    :- mode(short_name(-atom), zero_or_one).
    :- info(short_name/1, [
@@ -74,12 +81,19 @@
       argnames is ['WorkPosition']
    ]).
 
-	:- public(year_field/3).
-   :- mode(year_field(-atom, -atom, -atom), zero_or_one).
-   :- info(year_field/3, [
-      comment is 'Year stub, like 20 __ г',
-      argnames is ['YearDigits', 'PlaceholderNeeded', 'YearWord']
+	:- public(date/1).
+   :- mode(date(-atom), zero_or_one).
+   :- info(date/1, [
+      comment is 'Return approval date',
+      argnames is ['Date']
    ]).
+
+	:- public(number/1).
+	:- mode(number(-atom), zero_or_one).
+	:- info(number/1, [
+		comment is 'Defines approval document number',
+		argnames is ['DocumentNumber']
+	]).
 
 :- end_protocol.
 
@@ -180,24 +194,27 @@
 		::option(undersore_after_century(U),
 			Options,
 			undersore_after_century(true)),
+		::option(before(GoalBefore), options, before(true)),
 		R::makebox(Width,
-			(D == none ->
-				(R::run('"~~'), R::underscore_fill('5mm'),
-		 		 R::run('~~"~~'), R::cmd(hrulefill),
-		 		 R::run('~~'),
-		 		 R::run('~w', [Y]),
-		 		 R::run('~~'),
-		 		 (U == true -> R::underscore_fill('5mm'); true),
-		 		 (YS \= '' -> R::run('~~'), R::run(YS); true))
-				 ;
-				 D = DY-DM-DD,!,
-				 R::run('"~~'), R::run(DD),
-		 		 R::run('~~"~~'), R::run(DM),
-		 		 R::run('~~'),
-		 		 R::run('~w', [DY]),
-		 		 R::run('~~'),
-		 		 (YS \= '' -> R::run('~~'), R::run(YS); true))
-			).
+			(
+				call(GoalBefore),
+				(D == none ->
+					(R::run('"~~'), R::underscore_fill('5mm'),
+					 R::run('~~"~~'), R::cmd(hrulefill),
+					 R::run('~~'),
+					 R::run('~w', [Y]),
+					 R::run('~~'),
+					 (U == true -> R::underscore_fill('5mm'); true),
+					 (YS \= '' -> R::run('~~'), R::run(YS); true))
+					 ;
+					 D = DY-DM-DD,!,
+					 R::run('"~~'), R::run(DD),
+					 R::run('~~"~~'), R::run(DM),
+					 R::run('~~'),
+					 R::run('~w', [DY]),
+					 R::run('~~'),
+					 (YS \= '' -> R::run('~~'), R::run(YS); true))
+				)).
 
 :- end_object.
 
@@ -210,6 +227,7 @@
        date is 2025-07-23,
        comment is 'Category drawing headers of documants'
    ]).
+
    :- public(draw_approval/2).
    :- mode(draw_approval(+atom, +list), zero_or_one).
    :- info(draw_approval/2, [
@@ -217,49 +235,59 @@
       argnames is ['ModeOfRendering', 'OptionsOfRendering']
    ]).
 
-   draw_approval(semicentered, Options) :-
-      ::renderer(R),
+   draw_approval(Variant, Options) :-
 		::approval(App),
+		::draw_approval(App, Variant, Options).
+
+   :- public(draw_approval/3).
+   :- mode(draw_approval(+object, +atom, +list), zero_or_one).
+   :- info(draw_approval/3, [
+      comment is 'Draw approval',
+      argnames is ['ApprovalObject', 'ModeOfRendering', 'OptionsOfRendering']
+   ]).
+
+   draw_approval(App, plain, Options) :-
+      ::renderer(R),
 		App::short_name(Name),
-		App::year_field(Y, U, YS),
-		App::position(Position), !,
-		T = tabularx(R, []),
+		(App::date(Date)->true; Date = none),
+		(App::number(Number)->true; Number = none),
+		App::position(Position),
+		App::type_title(AAppTitle),
+		!,
 		::option(vspace(approval, SkipSize), Options, vspace(approval, none)),
-		T::begin('\\linewidth','XXX'),
-		T::tab, T::tab,
-      R::begin(center),
-		::option(title(approval, AppTitle), Options, title(approval, 'Утверждаю')),
+      %R::begin(center),
+		::option(title(approval, AppTitle), Options, title(approval, AAppTitle)),
+		::option(width(Width), Options, width('\\linewidth')),
 		R::run(AppTitle),
-		R::vspace('-1em'),
-		R::vspace(SkipSize),
-      R::end(center),
+		% R::vspace('-1em'),
+		R::par(SkipSize),
+      %R::end(center),
 		R::run(Position),
 		R::par(SkipSize),
-		R::cmd(noindent),
-		R::makebox('\\linewidth',
+		% R::cmd(noindent),
+		R::makebox(Width,
 			(R::cmd(hrulefill),
 			 R::nbsp,
 			 R::run(Name))
 		),
 		R::par(SkipSize),
-		R::makebox('\\linewidth',
-			(R::run('"~~'), R::underscore_fill('5mm'),
-			 R::run('~~"~~'), R::cmd(hrulefill),
-			 R::run('~~'),
-			 R::run('~w', [Y]),
-			 R::run('~~'),
-			 (U == true -> R::underscore_fill('5mm'); true),
-			 (YS \= '' -> R::run('~~'), R::run(YS); true))
-		),
-		T::endrow,
-		T::end,
+		DF = date_field(R, Date),
+		DF::draw(Width,
+			[
+				before((Number \= none ->
+					R::run('протокол №~~'),
+					R::run(Number),
+					R::run('~~от~~')
+					;
+					true))
+			| Options]),
 		true.
 
 	% draw_approval(_, _).
 
 :- end_category.
 
-:- protocol(cd_titlep).
+:- protocol(cd_title_pagep).
 
 	:- public(document_title/1).
 	:- mode(document_title(-atom), one).
@@ -303,24 +331,24 @@
 		argnames is ['EductionType']
 	]).
 
-	:- public(approved_by/3).
-	:- mode(approved_by(-atom, -atom, -atom), one).
-	:- info(approved_by/3, [
+	:- public(approved_by/1).
+	:- mode(approved_by(-object), one).
+	:- info(approved_by/1, [
 		comment is 'Return approval department, person, date',
-		argnames is ['DepartmentName', 'PersonShortName', 'Date']
+		argnames is ['ApprovalObject']
 	]).
 
-	:- public(recommended_by/3).
-	:- mode(recommended_by(-atom, -atom, -atom), one).
-	:- info(recommended_by/3, [
+	:- public(recommended_by/1).
+	:- mode(recommended_by(-object), one).
+	:- info(recommended_by/1, [
 		comment is 'Return recommending person, e.g. chair supervisor, date',
-		argnames is ['DepartmentName', 'PersonShortName', 'Date']
+		argnames is ['ApprovalObject']
 	]).
 
 :- end_protocol.
 
 :- category(cd_titlec,
-   extends([partsc, exoptions])).
+   extends([partsc, exoptions, approvalc])).
 
 	:- public(draw_cd_document_title/1).
 	:- mode(draw_cd_document_title(+list), zero_or_one).
@@ -337,8 +365,6 @@
 		CD::profile(ProfileTitle),
 		CD::qualification(Qual),
 		CD::education_type(Type),
-		CD::approved_by(Department, APerson, ADate),
-		CD::recommended_by(Chair, Supervisor, RDate),
 		!,
 		::renderer(R),
 		::option(vspace(cd_type, Size), Options, vspace(cd_type, '0.7em')),
@@ -347,8 +373,9 @@
 			R::run(DTitle)
 		),
 		R::nl(Size),
+		R::vspace(Size),
 		T = tabularx(R, Options),
-		T::begin('0.9\\linewidth', 'lp{1em}X'),
+		T::begin('\\linewidth', 'p{0.45\\linewidth}Xp{0.45\\linewidth}'),
 		R::run('Наименование дисциплины (модуля):'),
 		T::tab, T::tab,
 		R::boldface((
@@ -381,29 +408,26 @@
 			R::run(Qual)
 		)),
 		T::endrow,
-		R::run('Форма обучения: очная'),
+		R::run('Форма обучения:'),
 		T::tab, T::tab,
 		R::boldface((
 			% R::cmd(raggedleft),
 			R::run(Type)
 		)),
+		R::vspace(Size),
+		R::vspace(Size),
+		T::endrow,
+		AOptions = [width('\\linewidth') | Options],
+		(CD::approved_by(AppBy) ->
+		 ::draw_approval(AppBy, plain, AOptions); true),
+		T::tab, T::tab,
+		(CD::recommended_by(RecBy) ->
+		 ::draw_approval(RecBy, plain, AOptions); true),
 		T::endrow,
 		T::end,
 		R::end(center).
 
 
-% Б1.В.ДВ.01.01 Основы инженерного
-% творчества
-% (индекс дисциплины по учебному плану, наименование дисциплины
-% (модуля))
-%
-% 01.03.02 Прикладная математика и
-% информатика
-% (код, наименование направления подготовки)
-% Направленность (профиль) подготовки:
-% Искусственный интеллект и системная
-% аналитика
-% Квалификация выпускника: бакалавр
-% Форма обучения: очная
+
 
 :- end_category.

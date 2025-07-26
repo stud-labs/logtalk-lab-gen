@@ -26,17 +26,36 @@
 
 
 :- object(approval,
-	implements(approvalp),
-	imports(approvalc)).
+	implements(approvalp)).
 
+	type_title('УТВЕРДАЮ').
 	short_name('И. И. Иванов').
 	position('директор организации').
-	year_field('20', true, 'г.').
+	date(none).
+	% no number.
 
 :- end_object.
 
+:- object(approval(
+		_TypeTitle_,
+		_Position_,
+		_ShortName_,
+		_Date_,
+		_Number_
+	),
+	implements(approvalp)).
+
+	type_title(_TypeTitle_).
+	position(_Position_).
+	short_name(_ShortName_).
+	date(_Date_).
+	number(_Number_).
+
+:- end_object.
+
+
 :- object(cd_title_page,
-	implements(cd_titlep)).
+	implements(cd_title_pagep)).
 
 	document_title('Рабочая программа дисциплины (модуля)').
 	discipline('Б1.В.ДВ.01.01', 'Основы инженерного творчества').
@@ -45,10 +64,16 @@
 	qualification('бакалавр').
 	education_type('очная').
 	approved_by(
-		'УМК института математики и информационных технологий',
-		'В.Г. Антоник', none).
-	recommended_by('кафедрой информационных технологий',
-		'Е.А. Черкашин', 2025-05-31).
+		approval(
+			'Согласовано с УМК института математики и информационных технологий',
+			'Председатель',
+			'В.Г. Антоник',
+			none, none)).
+	recommended_by(
+		approval('Рекомендовано кафедрой информационных технологий',
+			'зав. каф.',
+			'Е.А. Черкашин',
+			2025-05-31, 8)).
 
 :- end_object.
 
@@ -119,7 +144,7 @@
 				vspace(after_logo, '0.3em'),
 
 				vspace(approval, '0.7em'),
-				title(approval, 'УТВЕРЖДАЮ'),
+				% title(approval, 'УТВЕРЖДАЮ'),
 
 				vspace(cd_type, '1em'),
 
@@ -129,7 +154,15 @@
 	draw(plain, Options) :-
 		% ^^draw_company_logo(centering, Options),
 		^^draw_department_title(centering, Options),
-		^^draw_approval(semicentered, Options),
+		::renderer(R),
+		T = tabularx(R, []),
+		::option(width(Width), Options,
+			width('\\columnwidth')),
+		T::begin(Width,'XXX'),
+		T::tab, T::tab,
+		^^draw_approval(plain, Options),
+		T::endrow,
+		T::end,
 		^^draw_cd_document_title(Options),
 		::draw_city(Options).
 

@@ -141,15 +141,7 @@
 :- end_object.
 
 :- object(cd_approval,
-	implements(approvalp),
-	imports(approvalc)).
-
-	short_name(Name) :-
-		query(row(_, Name)).
-	position(Position) :-
-		query(row(Position, _)).
-
-	year_field('20', true, 'г.').
+	implements(approvalp)).
 
  	:- info([
  		version is 1:0:0,
@@ -157,6 +149,12 @@
  		date is 2025-07-25,
  		comment is 'Infers approval person from shakhty database'
  	]).
+
+	type_title('УТВЕРДАЮ').
+	short_name(Name) :-
+		query(row(_, Name)).
+	position(Position) :-
+		query(row(Position, _)).
 
  	query(Row) :-
 		sql_connection::query(
