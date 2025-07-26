@@ -162,6 +162,45 @@
 
 :- end_category.
 
+:- object(date_field(_Renderer_, _Date_),
+	imports(exoptions)).
+
+	:- public(draw/2).
+	:- mode(draw(+atom, +list), one).
+	:- info(draw/2, [
+		comment is 'Draw date or <<__>> _____ 20__ г. if none',
+		argnames is ['Width','OptionList']
+	]).
+
+	draw(Width, Options) :-
+		D = _Date_,
+		R = _Renderer_,
+		::option(century(Y), Options, century('20')),
+		::option(year_sign(YS), Options, year_sign('г.')),
+		::option(undersore_after_century(U),
+			Options,
+			undersore_after_century(true)),
+		R::makebox(Width,
+			(D == none ->
+				(R::run('"~~'), R::underscore_fill('5mm'),
+		 		 R::run('~~"~~'), R::cmd(hrulefill),
+		 		 R::run('~~'),
+		 		 R::run('~w', [Y]),
+		 		 R::run('~~'),
+		 		 (U == true -> R::underscore_fill('5mm'); true),
+		 		 (YS \= '' -> R::run('~~'), R::run(YS); true))
+				 ;
+				 D = DY-DM-DD,!,
+				 R::run('"~~'), R::run(DD),
+		 		 R::run('~~"~~'), R::run(DM),
+		 		 R::run('~~'),
+		 		 R::run('~w', [DY]),
+		 		 R::run('~~'),
+		 		 (YS \= '' -> R::run('~~'), R::run(YS); true))
+			).
+
+:- end_object.
+
 :- category(approvalc,
    extends([partsc, exoptions])).
 
@@ -220,40 +259,144 @@
 
 :- end_category.
 
+:- protocol(cd_titlep).
 
-:- category(cdc,
+	:- public(document_title/1).
+	:- mode(document_title(-atom), one).
+	:- info(document_title/1, [
+		comment is 'Name of document, eg. Course description',
+		argnames is ['TitleOfDocument']
+	]).
+
+	:- public(discipline/2).
+	:- mode(discipline(-atom, -atom), one).
+	:- info(discipline/2, [
+		comment is 'Returns discipline code abd title',
+		argnames is ['DisciplineCode', 'DisciplineTitle']
+	]).
+
+	:- public(direction/2).
+	:- mode(direction(-atom, -atom), one).
+	:- info(direction/2, [
+		comment is 'Returns direction code abd title',
+		argnames is ['DirectionlineCode', 'DirectionTitle']
+	]).
+
+	:- public(profile/1).
+	:- mode(profile(-atom), one).
+	:- info(profile/1, [
+		comment is 'Title of education program profile',
+		argnames is ['ProfileTitle']
+	]).
+
+	:- public(qualification/1).
+	:- mode(qualification(-atom), one).
+	:- info(qualification/1, [
+		comment is 'Return qualification of the student studying the discipline',
+		argnames is ['QualificationTitle']
+	]).
+
+	:- public(education_type/1).
+	:- mode(education_type(-atom), one).
+	:- info(education_type/1, [
+		comment is 'Return education type',
+		argnames is ['EductionType']
+	]).
+
+	:- public(approved_by/3).
+	:- mode(approved_by(-atom, -atom, -atom), one).
+	:- info(approved_by/3, [
+		comment is 'Return approval department, person, date',
+		argnames is ['DepartmentName', 'PersonShortName', 'Date']
+	]).
+
+	:- public(recommended_by/3).
+	:- mode(recommended_by(-atom, -atom, -atom), one).
+	:- info(recommended_by/3, [
+		comment is 'Return recommending person, e.g. chair supervisor, date',
+		argnames is ['DepartmentName', 'PersonShortName', 'Date']
+	]).
+
+:- end_protocol.
+
+:- category(cd_titlec,
    extends([partsc, exoptions])).
 
-	:- public(draw_cd_document_type/1).
-	:- mode(draw_cd_document_type(+list), zero_or_one).
-	:- info(draw_cd_document_type/1, [
+	:- public(draw_cd_document_title/1).
+	:- mode(draw_cd_document_title(+list), zero_or_one).
+	:- info(draw_cd_document_title/1, [
 		comment is 'Draws document type',
 		argnames is ['ListOfOptions']
 	]).
 
-	draw_cd_document_type(Options) :-
+	draw_cd_document_title(Options) :-
+		::cd_title_page(CD),
+		CD::document_title(DTitle),
+		CD::discipline(DiscCode, DiscTitle),
+		CD::direction(DirCode, DirTitle),
+		CD::profile(ProfileTitle),
+		CD::qualification(Qual),
+		CD::education_type(Type),
+		CD::approved_by(Department, APerson, ADate),
+		CD::recommended_by(Chair, Supervisor, RDate),
+		!,
 		::renderer(R),
 		::option(vspace(cd_type, Size), Options, vspace(cd_type, '0.7em')),
 		R::begin(center),
 		R::boldface(
-			R::run('Рабочая программа дисциплины (модуля)')),
+			R::run(DTitle)
+		),
 		R::nl(Size),
 		T = tabularx(R, Options),
-		T::begin('\\linewidth', 'lp{1em}X'),
-		R::run('Наименование дисциплины (модуля)'),
+		T::begin('0.9\\linewidth', 'lp{1em}X'),
+		R::run('Наименование дисциплины (модуля):'),
 		T::tab, T::tab,
-		R::run('asdasd'),
+		R::boldface((
+			% R::cmd(raggedleft),
+			R::run(DiscCode),
+			R::run('~~'),
+			R::run(DiscTitle)
+		)),
+		T::endrow,
+		R::run('Направление подготовки:'),
+		T::tab, T::tab,
+		R::boldface((
+			% R::cmd(raggedleft),
+			R::run(DirCode),
+			R::run('~~'),
+			R::run(DirTitle)
+		)),
+		T::endrow,
+		R::run('Направленность (профиль) подготовки:'),
+		T::tab, T::tab,
+		R::boldface((
+			% R::cmd(raggedleft),
+			R::run(ProfileTitle)
+		)),
+		T::endrow,
+		R::run('Квалификация выпускника:'),
+		T::tab, T::tab,
+		R::boldface((
+			% R::cmd(raggedleft),
+			R::run(Qual)
+		)),
+		T::endrow,
+		R::run('Форма обучения: очная'),
+		T::tab, T::tab,
+		R::boldface((
+			% R::cmd(raggedleft),
+			R::run(Type)
+		)),
 		T::endrow,
 		T::end,
 		R::end(center).
-
 
 
 % Б1.В.ДВ.01.01 Основы инженерного
 % творчества
 % (индекс дисциплины по учебному плану, наименование дисциплины
 % (модуля))
-% Направление подготовки:
+%
 % 01.03.02 Прикладная математика и
 % информатика
 % (код, наименование направления подготовки)

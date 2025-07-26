@@ -35,6 +35,22 @@
 
 :- end_object.
 
+:- object(cd_title_page,
+	implements(cd_titlep)).
+
+	document_title('Рабочая программа дисциплины (модуля)').
+	discipline('Б1.В.ДВ.01.01', 'Основы инженерного творчества').
+	direction('01.03.02', 'Прикладная математика и информатика').
+	profile('Искусственный интеллект и системная аналитика').
+	qualification('бакалавр').
+	education_type('очная').
+	approved_by(
+		'УМК института математики и информационных технологий',
+		'В.Г. Антоник', none).
+	recommended_by('кафедрой информационных технологий',
+		'Е.А. Черкашин', 2025-05-31).
+
+:- end_object.
 
 :- object(institute_imit,
 	implements(departmentp)).
@@ -48,7 +64,7 @@
 
 :- object(test_doc(_Renderer_),
 	extends(document(_Renderer_)),
-	imports([departmentc, approvalc, cdc])).
+	imports([departmentc, approvalc, cd_titlec])).
 
 	:- info([
 		version is 1:0:0,
@@ -64,11 +80,20 @@
 		argnames is ['DepartmentObject']
 	]).
 
+	:- public(cd_title_page/1).
+	:- mode(cd_title_page(-object), zero_or_one).
+	:- info(cd_title_page/1, [
+		comment is 'Defines title page data sources',
+		argnames is ['CDTitlePageObject']
+	]).
+
+
 	% department(departement_imit).
 	company_logo('isu-logo.png', [width='1.5cm']).
 
 	department(cd_chair).
 	approval(cd_approval).
+	cd_title_page(cd_title_page).
 
 	draw:-
 		::draw(plain,
@@ -105,7 +130,7 @@
 		% ^^draw_company_logo(centering, Options),
 		^^draw_department_title(centering, Options),
 		^^draw_approval(semicentered, Options),
-		^^draw_cd_document_type(Options),
+		^^draw_cd_document_title(Options),
 		::draw_city(Options).
 
 	:- protected(draw_city/1).
@@ -130,8 +155,8 @@
    ]).
 
 	connect_db :-
-		sql_connection::connect("/home/eugeneai/projects/text/docent/isu/2025/cirricullum-2025/pmi", _).
-%		sql_connection::connect("/home/eugeneai/projects/text/docent/isu/2025/cirricullum/pmi", _).
+%		sql_connection::connect("/home/eugeneai/projects/text/docent/isu/2025/cirricullum-2025/pmi", _).
+		sql_connection::connect("/home/eugeneai/projects/text/docent/isu/2025/cirricullum/pmi", _).
 %		sql_connection::connect("/home/eugeneai/projects/text/docent/isu/2025/dev/cirricullum-2025/pmi", _).
 
 	:- initialization(::connect_db).
