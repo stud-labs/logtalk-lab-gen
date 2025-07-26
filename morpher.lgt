@@ -25,7 +25,7 @@
 :- object(morpher).
 
 	:- use_module(morpher_backend,
-		[query/4 as m_query/4,
+		[query_cached/4 as m_query/4,
 		connect_db/0]).
 
 	:- public(query/2).
@@ -35,11 +35,17 @@
 		argnames is ['Russian sentence', 'Morphing result']
 	]).
 
-	query(String, List) :-
+	query(String, Query) :-
 		morpher_config::url(URL),
 		morpher_config::uuid(UUID),
-		m_query(URL, UUID, String, List).
+		m_query(URL, UUID, String, Query).
 
-	:- initialization((connect_db)).
+	:- initialization((
+		connect_db,
+		% debugger::trace,
+		forall(::query('маленький японский шнобель',
+						row(Value, gen, s)),
+				format("RC:~w~n", [Value]))
+	)).
 
 :- end_object.
