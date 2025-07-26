@@ -118,7 +118,7 @@
 
 	department(cd_chair).
 	approval(cd_approval).
-	cd_title_page(cd_title_page).
+	cd_title_page(cd_cd_title_page).
 
 	draw:-
 		::draw(plain,

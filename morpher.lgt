@@ -35,17 +35,19 @@
 		argnames is ['Russian sentence', 'Morphing result']
 	]).
 
-	query(String, Query) :-
+	query(String, m(Value, Gen, Mult)) :-
 		morpher_config::url(URL),
 		morpher_config::uuid(UUID),
-		m_query(URL, UUID, String, Query).
+		m_query(URL, UUID, String, row(Value1, Gen1, Mult1)),
+		Value1 = Value,
+		Gen1 = Gen, Mult1 = Mult.
 
 	:- initialization((
-		connect_db,
+		connect_db % ,
 		% debugger::trace,
-		forall(::query('маленький японский шнобель',
-						row(Value, gen, s)),
-				format("RC:~w~n", [Value]))
+		% forall(::query('маленький японский шнобель',
+		% 				row(Value, gen, s)),
+		% 		format("RC:~w~n", [Value]))
 	)).
 
 :- end_object.

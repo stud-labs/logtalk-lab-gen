@@ -162,3 +162,32 @@
 			Row),!.
 
  :- end_object.
+
+:- object(cd_cd_title_page,
+	implements(cd_title_pagep)).
+
+	document_title('Рабочая программа дисциплины (модуля)').
+	discipline('Б1.В.ДВ.01.01', 'Основы инженерного творчества').
+	direction('01.03.02', 'Прикладная математика и информатика').
+	profile('Искусственный интеллект и системная аналитика').
+	qualification('бакалавр').
+	education_type('очная').
+	approved_by(
+		approval(
+			'Согласовано с УМК института математики и информационных технологий',
+			'Председатель',
+			'В.Г. Антоник',
+			none, none)).
+	recommended_by(
+		approval(RecChair,
+			'зав. каф.',
+			'Е.А. Черкашин',
+			2025-05-31, 8)) :-
+				cd_chair::title(Chair),
+				% debugger::trace,
+				downcase_atom(Chair, DChair),
+				morpher::query(DChair, m(Value, ins, s)),
+				% G = ins,
+				format(atom(RecChair), 'Рекомендовано ~w', [Value]).
+
+:- end_object.
