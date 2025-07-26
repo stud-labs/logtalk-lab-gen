@@ -14,7 +14,8 @@
     % logtalk_load(options(loader)),
     % load the project source files
     logtalk_load([
-      docs
+		morpher
+    , docs
     , parts
 	 , cd_source
     , docs_test_simple

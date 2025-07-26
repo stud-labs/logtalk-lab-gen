@@ -19,6 +19,10 @@
 
 	:- use_module(library(lists), [member/2]).
 
+	option(_, NotAList) :-
+		\+ is_list(NotAList), !,
+		throw(type_error(NotAList,'is not a list')).
+
 	option(Option, Options) :-
    	member(Option, Options), !.
 
@@ -32,7 +36,7 @@
 	option(Option, Options, _) :-
    	member(Option, Options), !.
 
-	option(Default, Options, Default).
+	option(Default, _Options, Default).
 
 :- end_category.
 

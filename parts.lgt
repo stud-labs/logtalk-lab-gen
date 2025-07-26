@@ -148,7 +148,6 @@
 
 	draw_title(Department, Renderer, Options) :-
 		Department::title(Title), !,
-		% debugger::trace,
 		(Department::type(Type) -> true; Type=department),
       (::option(upcase(Type), Options) ->
 			upcase_atom(Title, UTitle); UTitle = Title),
@@ -194,7 +193,7 @@
 		::option(undersore_after_century(U),
 			Options,
 			undersore_after_century(true)),
-		::option(before(GoalBefore), options, before(true)),
+		::option(before(GoalBefore), Options, before(true)),
 		R::makebox(Width,
 			(
 				call(GoalBefore),
@@ -208,12 +207,20 @@
 					 (YS \= '' -> R::run('~~'), R::run(YS); true))
 					 ;
 					 D = DY-DM-DD,!,
-					 R::run('"~~'), R::run(DD),
-					 R::run('~~"~~'), R::run(DM),
-					 R::run('~~'),
+					 (GoalBefore == true -> R::cmd(hfill); true),
+					 % R::run('"~~'), R::run(DD),
+					 % R::run('~~"~~'), R::run(DM),
+					 % R::run('~~'),
+					 % R::run('~w', [DY]),
+					 % R::run('~~'),
+					 % (YS \= '' -> R::run('~~'), R::run(YS); true))
+					 R::run(DD),
+					 R::run('.'),
+					 R::run(DM),
+					 R::run('.'),
 					 R::run('~w', [DY]),
-					 R::run('~~'),
-					 (YS \= '' -> R::run('~~'), R::run(YS); true))
+					 (YS \= '' -> R::run('~~'), R::run(YS); true)),
+					 (GoalBefore \= true -> R::cmd(hfill); true)
 				)).
 
 :- end_object.
@@ -264,7 +271,6 @@
       %R::end(center),
 		R::run(Position),
 		R::par(SkipSize),
-		% R::cmd(noindent),
 		R::makebox(Width,
 			(R::cmd(hrulefill),
 			 R::nbsp,
@@ -275,7 +281,7 @@
 		DF::draw(Width,
 			[
 				before((Number \= none ->
-					R::run('протокол №~~'),
+					R::run('Протокол №~~'),
 					R::run(Number),
 					R::run('~~от~~')
 					;

@@ -28,7 +28,7 @@
 :- object(approval,
 	implements(approvalp)).
 
-	type_title('УТВЕРДАЮ').
+	type_title('УТВЕРЖДАЮ').
 	short_name('И. И. Иванов').
 	position('директор организации').
 	date(none).

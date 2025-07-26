@@ -150,7 +150,7 @@
  		comment is 'Infers approval person from shakhty database'
  	]).
 
-	type_title('УТВЕРДАЮ').
+	type_title('УТВЕРЖДАЮ').
 	short_name(Name) :-
 		query(row(_, Name)).
 	position(Position) :-
