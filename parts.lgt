@@ -433,7 +433,15 @@
 		T::end,
 		R::end(center).
 
-
-
-
 :- end_category.
+
+:- protocol(disciplinep).
+
+	:- public(title/2).
+	:- mode(title(?atom, ?atom), zero_or_more).
+	:- info(title/2, [
+		comment is 'Returns discipline code and title',
+		argnames is ['Code','Title']
+	]).
+
+:- end_protocol.

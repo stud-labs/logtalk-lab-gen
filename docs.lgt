@@ -379,14 +379,16 @@
 	:- meta_predicate(gen(0,0)).
 	gen(DataGoal, DocumentGoalList):-
 		% debugger::trace,
-		::start,
 		forall(
 			call(DataGoal),
 				(
-					 forall(member(Doc, DocumentGoalList),
+					::start,
+					forall(
+						member(Doc, DocumentGoalList),
 						(
 							(Doc == none ->
-								format('ERROR: Redefine run/0, supply list of documents to be generated to gen/2!',[]);
+								format('ERROR: Redefine run/0, supply list of documents to be generated to gen/2!',[])
+								;
 								(
 									% debugger::trace,
 
@@ -395,13 +397,13 @@
 									_Renderer_::run('% Rendering failed ~w', [Doc])
 								)
 							)
-						))
-				)),
-		::end,
-		_Renderer_::file_name(FileName),
-		format('% Files "~w" created.\n', [FileName]).
+						)),
+					::end,
+					_Renderer_::file_name(FileName),
+					format('% File "~w" created.\n', [FileName])
+				)).
 
-	:- protected(gen/0).
+	:- public(gen/0).
 	gen:-
 		% debugger::trace,
 		gen(true, [none]).

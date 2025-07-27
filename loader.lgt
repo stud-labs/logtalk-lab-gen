@@ -18,7 +18,13 @@
     , docs
     , parts
 	 , cd_source
-    , docs_test_simple
+%    , docs_test_simple
+	 , cd_docs
+
     ]),
+		cd_documents('Б1.В.ДВ.01.01', Tile)::gen,
+		format(
+			'INFO: We generated documents for ~q discipline!',
+	 		[Tile]),
     halt
 )).

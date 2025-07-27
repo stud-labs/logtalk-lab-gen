@@ -1,8 +1,8 @@
 .PHONY: clean resp view
 
-TARGET=docs_test_simple
+TARGET=cd_documents
 SRC=docs.lgt parts.lgt docs_test_simple.lgt loader.lgt cd_source.lgt \
-	morpher.lgt morpher_backend.pl
+	morpher.lgt morpher_backend.pl cd_docs.lgt
 
 tex: $(TARGET).tex
 
