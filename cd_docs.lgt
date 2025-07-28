@@ -194,7 +194,7 @@
 
 
 :- object(cd_documents(_Code_, _Title_),
-		extends(documents(_Renderer_))
+		extends(documents)
 	% extends(documents(latex_renderer(user)))
 	).
 
@@ -204,10 +204,11 @@
 				% debugger::trace,
 				::discipline(D),
 				::file_name(D, FileName),
-				::renderer(latex_renderer(FileName)),
-				::renderer(R)
+				R = latex_renderer(FileName)
 			),
-			[cd_document(R, D)]
+			(
+				cd_document(R, D)
+			)
 		).
 
 	:- protected(file_name/2).

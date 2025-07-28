@@ -361,52 +361,52 @@
 :- end_object.
 
 
-:- object(documents(_Renderer_),
-	extends(document(_Renderer_))).
+:- object(documents).
 
-	:- protected(start/0).
-	start:-
-		_Renderer_::open_stream,
-		_Renderer_::file_preamble.
+	:- protected(start/1).
+	start(Renderer):-
+		Renderer::open_stream,
+		Renderer::file_preamble.
 
-	:- protected(end/0).
-	end:-
-		_Renderer_::file_postamble,
-		_Renderer_::close_stream.
+	:- protected(end/1).
+	end(Renderer):-
+		Renderer::file_postamble,
+		Renderer::close_stream.
 
 	:- use_module(library(lists), [member/2]).
 	:- public(gen/2).
 	:- meta_predicate(gen(0,0)).
-	gen(DataGoal, DocumentGoalList):-
+	gen(DataGoal, DocumentGoal):-
 		% debugger::trace,
 		forall(
 			call(DataGoal),
 				(
-					::start,
-					forall(
-						member(Doc, DocumentGoalList),
-						(
-							(Doc == none ->
-								format('ERROR: Redefine run/0, supply list of documents to be generated to gen/2!',[])
-								;
-								(
-									% debugger::trace,
+					call(DocumentGoal)
+					% forall(
+					% 	member(Doc, DocumentGoalList),
+					% 	(
+					% 		(Doc == none ->
+					% 			format('ERROR: Redefine run/0, supply list of documents to be generated to gen/2!',[])
+					% 			;
+					% 			(
+					% 				% debugger::trace,
 
-									Doc::draw -> _Renderer_::newpage
-									;
-									_Renderer_::run('% Rendering failed ~w', [Doc])
-								)
-							)
-						)),
-					::end,
-					_Renderer_::file_name(FileName),
-					format('% File "~w" created.\n', [FileName])
-				)).
+					% 				Doc::draw -> _Renderer_::newpage
+					% 				;
+					% 				_Renderer_::run('% Rendering failed ~w', [Doc])
+					% 			)
+					% 		)
+					% 	)),
+					% )
+				).
 
 	:- public(gen/0).
 	gen:-
 		% debugger::trace,
-		gen(true, [none]).
+		gen(true, (
+			format('ERROR: Redefine run/0, supply list of documents to be generated to gen/2!',[]),
+			false
+		)).
 
 :- end_object.
 
