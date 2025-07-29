@@ -376,37 +376,38 @@
 	:- use_module(library(lists), [member/2]).
 	:- public(gen/2).
 	:- meta_predicate(gen(0,0)).
-	gen(DataGoal, DocumentGoal):-
-		% debugger::trace,
+	gen(DataGoal, ListOrGoal):-
 		forall(
 			call(DataGoal),
 				(
-					call(DocumentGoal)
-					% forall(
-					% 	member(Doc, DocumentGoalList),
-					% 	(
-					% 		(Doc == none ->
-					% 			format('ERROR: Redefine run/0, supply list of documents to be generated to gen/2!',[])
-					% 			;
-					% 			(
-					% 				% debugger::trace,
-
-					% 				Doc::draw -> _Renderer_::newpage
-					% 				;
-					% 				_Renderer_::run('% Rendering failed ~w', [Doc])
-					% 			)
-					% 		)
-					% 	)),
-					% )
-				).
+					call(DocumentGoal),
+					forall(
+						member(Doc, ListOrGoal),
+						(
+							(Doc == none ->
+								format('ERROR: Redefine run/0, supply list of documents to be generated to gen/2!',[])
+								;
+								(
+									Doc::renderer(R),
+									Doc::draw -> R::newpage
+									;
+									R::run('% Rendering failed ~w', [Doc])
+								)
+							)
+						)
+					)
+				)
+			).
 
 	:- public(gen/0).
 	gen:-
 		% debugger::trace,
-		gen(true, (
-			format('ERROR: Redefine run/0, supply list of documents to be generated to gen/2!',[]),
-			false
-		)).
+		% gen(true, (
+		% 	format('ERROR: Redefine run/0, supply list of documents to be generated to gen/2!',[]),
+		% 	false
+		% ))
+		gen(true, [none])
+		.
 
 :- end_object.
 

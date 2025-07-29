@@ -41,7 +41,7 @@
 
 :- end_object.
 
-:- object(cd_document(_Renderer_),
+:- object(cd_document(_Renderer_, _Discipline_),
 	extends(document(_Renderer_)),
 	imports([departmentc, approvalc, cd_titlec])).
 
@@ -72,7 +72,7 @@
 
 	department(cd_chair).
 	approval(cd_approval).
-	cd_title_page(cd_cd_title_page).
+	cd_title_page(cd_cd_title_page(_Discipline_)).
 
 	draw:-
 		::draw(plain,
@@ -195,19 +195,20 @@
 
 :- object(cd_documents(_Code_, _Title_),
 		extends(documents)
-	% extends(documents(latex_renderer(user)))
 	).
 
 	gen :-
-		::gen(
+		forall(
 			(
-				% debugger::trace,
 				::discipline(D),
 				::file_name(D, FileName),
 				R = latex_renderer(FileName)
 			),
 			(
-				cd_document(R, D)
+				^^start(R),
+				Doc=cd_document(R, D),
+				Doc::draw,
+				^^end(R)
 			)
 		).
 

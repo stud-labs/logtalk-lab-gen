@@ -22,9 +22,14 @@
 	 , cd_docs
 
     ]),
-		cd_documents('Б1.В.ДВ.01.01', Tile)::gen,
+		Code = 'Б1.В.ДВ.01.01',
+		Doc = cd_documents(Code, Title),
+		Doc::gen,
+		Disc=cd_discipline(Code, Title),
+		Doc::discipline(Disc),
+		Disc::title(Code, Title),
 		format(
-			'INFO: We generated documents for ~q discipline!',
-	 		[Tile]),
+			'INFO: We generated documents for ~q discipline!~n',
+	 		[Title]),
     halt
 )).
