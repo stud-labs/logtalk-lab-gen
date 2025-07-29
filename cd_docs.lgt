@@ -193,7 +193,7 @@
 :- end_object.
 
 
-:- object(cd_documents(_Code_, _Title_),
+:- object(cd_documents(_Discipline_),
 		extends(documents)
 	).
 
@@ -231,7 +231,7 @@
 		argnames is ['DisciplineObject']
 	]).
 
-	discipline(cd_discipline(_Code_, _Title_)).
+	discipline(_Discipline_).
 
 	% :- initialization(::gen).
 :- end_object.

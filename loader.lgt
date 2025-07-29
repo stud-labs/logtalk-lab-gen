@@ -22,14 +22,20 @@
 	 , cd_docs
 
     ]),
-		Code = 'Б1.В.ДВ.01.01',
-		Doc = cd_documents(Code, Title),
-		Doc::gen,
-		Disc=cd_discipline(Code, Title),
-		Doc::discipline(Disc),
-		Disc::title(Code, Title),
-		format(
-			'INFO: We generated documents for ~q discipline!~n',
-	 		[Title]),
+		% Code = 'Б1.В.ДВ.01.01',
+		forall(
+			(
+				Disc = cd_discipline(Code, Title),
+				Disc::title(Code, Title)
+			),
+			(
+				Doc = cd_documents(Disc),
+				Doc::discipline(Disc),
+				Doc::gen,
+				format(
+					'INFO: We generated documents for ~q discipline!~n',
+					[Title])
+			)
+		),
     halt
 )).
