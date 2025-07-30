@@ -380,7 +380,7 @@
 		forall(
 			call(DataGoal),
 				(
-					call(DocumentGoal),
+					% call(DocumentGoal),
 					forall(
 						member(Doc, ListOrGoal),
 						(

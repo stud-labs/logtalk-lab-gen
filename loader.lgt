@@ -15,6 +15,7 @@
     % load the project source files
     logtalk_load([
 		morpher
+	 , global
     , docs
     , parts
 	 , cd_source
@@ -22,7 +23,7 @@
 	 , cd_docs
 
     ]),
-		% Code = 'Б1.В.ДВ.01.01',
+		Code = 'Б1.В.ДВ.01.01',
 		forall(
 			(
 				Disc = cd_discipline(Code, Title),

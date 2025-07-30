@@ -2,7 +2,7 @@
 
 TARGET=cd_documents
 SRC=docs.lgt parts.lgt docs_test_simple.lgt loader.lgt cd_source.lgt \
-	morpher.lgt morpher_backend.pl cd_docs.lgt
+	morpher.lgt morpher_backend.pl cd_docs.lgt global.lgt
 
 tex: $(TARGET).tex
 
