@@ -7,12 +7,13 @@
 	]).
 
 	init :-
-		 ::at_base('config.yaml', PathName),
-		 open(PathName, read, In),
-		 yaml_read(In, YAML),
-		 close(In),
-		 retractall(yaml_dom(_)),
-		 assertz(yaml_dom(YAML)),!.
+		% debugger::trace,
+		::at_base('syllabus_config.yaml', PathName),
+		open(PathName, read, In),
+		yaml_read(In, YAML),
+		close(In),
+		retractall(yaml_dom(_)),
+		assertz(yaml_dom(YAML)),!.
 
 	:- protected(base_config/1).
  	:- mode(base_config(-atom), zero_or_one).
@@ -46,18 +47,20 @@
 
 	syllabus(path_name(PathName)) :-
 		::base_config(base_dir(BD)),
-		::yaml(syllabus(path, Dir), syllabus(path, BD)),
-		::yaml(syllabus(database, DB), syllabus(database, pmi)),
+		::yaml(syllabus/path, Dir, BD),
+		::yaml(syllabus/database, DB, pmi),
 		at_dir(Dir, DB, PathName).
 
-	:- public(yaml/2).
-	:- mode(yaml(?atom, +atom), zero_or_more).
-	:- info(yaml/2, [
+	:- public(yaml/3).
+	:- mode(yaml(+atom, -atom, +atom), zero_or_more).
+	:- info(yaml/3, [
 		comment is 'Query config with an atom',
-		argnames is ['QueryAtom', 'Default']
+		argnames is ['DictQueryPath', 'Value', 'DefaultValue']
 	]).
 
-	yaml(Query, Query).
+	yaml(PathExpr, Value, Default) :-
+		::yaml_dom(DOM),
+		Value = DOM.get(PathExpr, Default).
 
 	:- protected(at_base/2).
 	:- mode(at_base(+atom, ?atom), one).
