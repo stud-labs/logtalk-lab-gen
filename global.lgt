@@ -7,8 +7,15 @@
 	]).
 
 	init :-
+		% debugger::trace,
 		::at_base('syllabus_config.yaml', PathName),
-		open(PathName, read, In),
+		catch(
+			open(PathName, read, In),
+			(
+				format("ERROR: cannot open config file ''!", [PathName]),
+				halt
+			),
+			true),
 		yaml_read(In, YAML),
 		close(In),
 		retractall(yaml_dom(_)),
@@ -21,10 +28,12 @@
 		argnames is ['BaseDirectory']
  	]).
 
-	base_config(base_dir('/home/eugeneai/projects/text/docent/isu/2025/cirricullum')).
-%		sql_connection::connect("/home/eugeneai/projects/text/docent/isu/2025/cirricullum-2025/pmi", _).
-%		sql_connection::connect("/home/eugeneai/projects/text/docent/isu/2025/cirricullum/pmi", _).
-%		sql_connection::connect("/home/eugeneai/projects/text/docent/isu/2025/dev/cirricullum-2025/pmi", _).
+	:- use_module(user, [working_directory/2, absolute_file_name/3]).
+
+	base_config(base_dir(cwd(FileName, Dir))) :-
+		working_directory(CWD, CWD),
+		absolute_file_name(syllabus, Dir1, [relative_to(CWD)]),
+		absolute_file_name(FileName, Dir, [relative_to(Dir1)]).
 
 	:- protected(yaml_dom/1).
 	:- mode(yaml_dom(-atom), zero_or_one).
@@ -44,10 +53,24 @@
 		argnames is ['QueryAtom']
 	]).
 
+	:- use_module(library(lists), [member/2]).
+
 	syllabus(path_name(PathName)) :-
 		::yaml(config/dircode, DirCode),
 		::yaml(config/year, Year),
-		::
+		::yaml(directions, Directions),
+		member(X, Directions),
+		Year = X.get(year),
+		DirCode = X.get(code), !,
+		(
+			Path = X.get(basepath)
+			;
+			RelPath = X.get(relpath),
+			base_config(base_dir(cwd(RelPath, Path)))
+		),
+		SQLIte = X.get(database/sqlite),
+		::at_dir(Path, SQLIte, PathName),
+		true.
 
 	:- public(yaml/3).
 	:- mode(yaml(+atom, -atom, +atom), zero_or_more).
@@ -60,7 +83,7 @@
 		::yaml_dom(DOM),
 		Value = DOM.get(PathExpr, Default).
 
-	:- public(yam2/2).
+	:- public(yaml/2).
 	:- mode(yaml(+atom, -atom), zero_or_more).
 	:- info(yaml/2, [
 		comment is 'Query config with a path expression, fail, if no record',
@@ -79,8 +102,11 @@
 	]).
 
 	at_base(Name, FileName) :-
-		::base_config(base_dir(D)),
-		::at_dir(D, Name, FileName).
+		::base_config(base_dir(cwd(Name,FileName))), !.
+
+	at_base(Name, FileName) :-
+		::base_config(base_dir(D)), !,
+		absolute_file_name(Name, FileName, [relative_to(D)]).
 
 	:- protected(at_dir/3).
 	:- mode(at_dir(+atom, +atom, ?atom), one).
@@ -90,7 +116,7 @@
 	]).
 
 	at_dir(Dir, Name, FileName) :-
-		format(atom(FileName), '~w/~w', [Dir, Name]).
+		absolute_file_name(Name, FileName, [relative_to(Dir)]).
 
 	:- initialization(::init).
 

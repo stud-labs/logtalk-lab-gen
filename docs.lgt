@@ -360,6 +360,7 @@
 		R::run_ln('ERROR: Document descendant of \\uscore{~w} is not defined', [Self]).
 :- end_object.
 
+:- set_logtalk_flag(suspicious_calls, silent).
 
 :- object(documents).
 
@@ -411,6 +412,7 @@
 
 :- end_object.
 
+:- set_logtalk_flag(suspicious_calls, warning).
 
 :- category(local_documentc,
 	implements(documentp)).

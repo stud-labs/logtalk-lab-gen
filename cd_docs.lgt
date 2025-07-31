@@ -142,6 +142,7 @@
    ]).
 
 	connect_db :-
+		% debugger::trace,
 		global::syllabus(path_name(PathName)),
 		sql_connection::connect(PathName, _Conn).
 
