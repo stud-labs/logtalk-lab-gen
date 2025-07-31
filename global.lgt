@@ -7,7 +7,6 @@
 	]).
 
 	init :-
-		% debugger::trace,
 		::at_base('syllabus_config.yaml', PathName),
 		open(PathName, read, In),
 		yaml_read(In, YAML),
@@ -46,21 +45,31 @@
 	]).
 
 	syllabus(path_name(PathName)) :-
-		::base_config(base_dir(BD)),
-		::yaml(syllabus/path, Dir, BD),
-		::yaml(syllabus/database, DB, pmi),
-		at_dir(Dir, DB, PathName).
+		::yaml(config/dircode, DirCode),
+		::yaml(config/year, Year),
+		::
 
 	:- public(yaml/3).
 	:- mode(yaml(+atom, -atom, +atom), zero_or_more).
 	:- info(yaml/3, [
-		comment is 'Query config with an atom',
+		comment is 'Query config with a path expr, return DefaultValue if key does not exist',
 		argnames is ['DictQueryPath', 'Value', 'DefaultValue']
 	]).
 
 	yaml(PathExpr, Value, Default) :-
 		::yaml_dom(DOM),
 		Value = DOM.get(PathExpr, Default).
+
+	:- public(yam2/2).
+	:- mode(yaml(+atom, -atom), zero_or_more).
+	:- info(yaml/2, [
+		comment is 'Query config with a path expression, fail, if no record',
+		argnames is ['DictQueryPath', 'Value']
+	]).
+
+	yaml(PathExpr, Value) :-
+		::yaml_dom(DOM),
+		Value = DOM.get(PathExpr).
 
 	:- protected(at_base/2).
 	:- mode(at_base(+atom, ?atom), one).
