@@ -41,13 +41,23 @@
 	]).
 
 	yaml_path(YAML, Expr, Result) :-
-		Expr = PathExpr//(Key=Value), !,
+		Expr = PathExpr/(Key=Value), !,
 		yaml_path(YAML, PathExpr, List),
 		member(Result, List),
 		Value is Result.get(Key).
 
+	yaml_path(YAML, Expr, Result) :-
+		Expr = PathExpr/[Key=Value | T], !,
+		yaml_path(YAML, PathExpr/(Key=Value), Result),
+		check_dict(Result, T).
+
 	yaml_path(YAML, PathExpr, Value) :-
 		Value = YAML.get(PathExpr).
+
+	check_dict(_, []) :-!.
+	check_dict(Dict, [Key=Value | T]) :-
+		Value = Dict.get(Key),
+		check_dict(Dict, T).
 
 	:- public(yaml_path/4).
 	:- mode(yaml_path(+atom, +atom, -atom, ?atom), one).
@@ -155,7 +165,7 @@
 		::yaml(config/dircode, DirCode),
 		::yaml(config/year, Year),
 		% debugger::trace,
-		::yaml(directions//(year=Year), X),
+		::yaml(directions/[year=Year,code=DirCode], X),
 		Year = X.get(year),
 		DirCode = X.get(code), !,
 		(
