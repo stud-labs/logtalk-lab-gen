@@ -46,7 +46,7 @@
 	imports([departmentc
 			 , approvalc
 			 , cd_titlec
-			 , cd_aimsproblemsc
+			 , aims_problemsc(_Discipline_)
 	])).
 
 	:- info([

@@ -457,7 +457,7 @@
 
 :- end_protocol.
 
-:- category(aims_problemsc).
+:- category(aims_problemsc(_Discipline_)).
 
 	:- info([
 		version is 1:0:0,
@@ -473,8 +473,8 @@
 		argnames is ['Style', 'Options']
 	]).
 
-	draw_aims_problems(plain, Options) :-
-		D = _Discipline_,
+	draw_aims_problems(plain, _Options) :-
+		_D = _Discipline_,
 		::renderer(R),
 		R::run_ln('Section!').
 
