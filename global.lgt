@@ -1,4 +1,92 @@
-:- object(global).
+:- category(yamlc).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-01,
+		comment is 'YAML processing category'
+	]).
+
+	:- use_module(library(lists), [member/2]).
+
+	:- public(yaml/3).
+	:- mode(yaml(+atom, -atom, ?atom), one).
+	:- info(yaml/3, [
+		comment is 'Query config with a path expr, return DefaultValue if key does not exist',
+		argnames is ['DictQueryPath', 'Value', 'DefaultValue']
+	]).
+
+	yaml(PathExpr, Value, _) :-
+		::yaml_dom(DOM),
+		yaml_path(DOM, PathExpr, Value), !.
+
+	yaml(_, Default, Default).
+
+	:- public(yaml/2).
+	:- mode(yaml(+atom, -atom), zero_or_more).
+	:- info(yaml/2, [
+		comment is 'Query config with a path expression, fail, if no record',
+		argnames is ['DictQueryPath', 'Value']
+	]).
+
+	yaml(PathExpr, Value) :-
+		::yaml_dom(DOM),
+		yaml_path(DOM, PathExpr, Value).
+
+	:- public(yaml_path/3).
+	:- mode(yaml_path(+atom, +atom, -atom), zero_or_more).
+	:- info(yaml_path/3, [
+		comment is 'Query config with a path expr to a YAML structure',
+		argnames is ['YAML', 'Query', 'Value']
+	]).
+
+	yaml_path(YAML, Expr, Result) :-
+		Expr = PathExpr//(Key=Value), !,
+		yaml_path(YAML, PathExpr, List),
+		member(Result, List),
+		Value is Result.get(Key).
+
+	yaml_path(YAML, PathExpr, Value) :-
+		Value = YAML.get(PathExpr).
+
+	:- public(yaml_path/4).
+	:- mode(yaml_path(+atom, +atom, -atom, ?atom), one).
+	:- info(yaml_path/4, [
+		comment is 'Query config with a path expr to a YAML structure, return DefaultValue if key does not exist',
+		argnames is ['YAML', 'Query', 'Value', 'DefaultValue']
+	]).
+
+	yaml_path(YAML, PathExpr, Value, _) :-
+		yaml_path(YAML, PathExpr, Value), !.
+
+	yaml_path(_, _, Default, Default).
+
+	:- public(yaml_load/2).
+	:- mode(yaml_load(+atom, -atom), zero_or_one).
+	:- info(yaml_load/2, [
+		comment is 'Load YAML',
+		argnames is ['FileName', 'YAML']
+	]).
+
+	:- use_module(library(yaml),
+		[yaml_read/2]
+	).
+
+	yaml_load(FileName, YAML) :-
+		catch(
+			open(FileName, read, In),
+			(
+				format("ERROR: cannot open YAML file ''!", [FileName]),
+				halt
+			),
+			true),
+		yaml_read(In, YAML),
+		close(In).
+
+:- end_category.
+
+:- object(global,
+	imports(yamlc)).
 
 	:- public(init/0).
 	:- mode(init, one).
@@ -7,17 +95,8 @@
 	]).
 
 	init :-
-		% debugger::trace,
 		::at_base('syllabus_config.yaml', PathName),
-		catch(
-			open(PathName, read, In),
-			(
-				format("ERROR: cannot open config file ''!", [PathName]),
-				halt
-			),
-			true),
-		yaml_read(In, YAML),
-		close(In),
+		^^yaml_load(PathName, YAML),
 		retractall(yaml_dom(_)),
 		assertz(yaml_dom(YAML)),!.
 
@@ -55,11 +134,28 @@
 
 	:- use_module(library(lists), [member/2]).
 
+	% syllabus(path_name(PathName)) :-
+	% 	::yaml(config/dircode, DirCode),
+	% 	::yaml(config/year, Year),
+	% 	::yaml(directions, Directions),
+	% 	member(X, Directions),
+	% 	Year = X.get(year),
+	% 	DirCode = X.get(code), !,
+	% 	(
+	% 		Path = X.get(basepath)
+	% 		;
+	% 		RelPath = X.get(relpath),
+	% 		base_config(base_dir(cwd(RelPath, Path)))
+	% 	),
+	% 	SQLIte = X.get(database/sqlite),
+	% 	::at_dir(Path, SQLIte, PathName),
+	% 	true.
+
 	syllabus(path_name(PathName)) :-
 		::yaml(config/dircode, DirCode),
 		::yaml(config/year, Year),
-		::yaml(directions, Directions),
-		member(X, Directions),
+		% debugger::trace,
+		::yaml(directions//(year=Year), X),
 		Year = X.get(year),
 		DirCode = X.get(code), !,
 		(
@@ -71,28 +167,6 @@
 		SQLIte = X.get(database/sqlite),
 		::at_dir(Path, SQLIte, PathName),
 		true.
-
-	:- public(yaml/3).
-	:- mode(yaml(+atom, -atom, +atom), zero_or_more).
-	:- info(yaml/3, [
-		comment is 'Query config with a path expr, return DefaultValue if key does not exist',
-		argnames is ['DictQueryPath', 'Value', 'DefaultValue']
-	]).
-
-	yaml(PathExpr, Value, Default) :-
-		::yaml_dom(DOM),
-		Value = DOM.get(PathExpr, Default).
-
-	:- public(yaml/2).
-	:- mode(yaml(+atom, -atom), zero_or_more).
-	:- info(yaml/2, [
-		comment is 'Query config with a path expression, fail, if no record',
-		argnames is ['DictQueryPath', 'Value']
-	]).
-
-	yaml(PathExpr, Value) :-
-		::yaml_dom(DOM),
-		Value = DOM.get(PathExpr).
 
 	:- protected(at_base/2).
 	:- mode(at_base(+atom, ?atom), one).
