@@ -65,13 +65,41 @@
 
 	:- public(file_preamble/0).
 	file_preamble:-
-		::run('\\documentclass[12pt]{scrreprt}'),
+		::document_class(ClassOptions, Class),
+		::run('\\documentclass~w{~w}~n', [ClassOptions, Class]),
 		::cmd('pagestyle{empty}'),
 		forall(::require_package(Package), ::run('\\usepackage{~w}', [Package])),
 		forall(::require_package(Options, Package), ::run('\\usepackage~w{~w}', [Options, Package])),
 		::style_config,
 		::aux_preamble,
-		::begin_document.
+		::begin_document,
+		::setup_ign(after_begin_document).
+
+	:- public(document_class/2).
+	:- mode(document_class(-list, -atom), one).
+	:- info(document_class/2, [
+		comment is 'Define options and documentclass dontent',
+		argnames is ['Options', 'DocumentClass']
+	]).
+
+	document_class(['12pt'],scrreprt).
+
+	:- public(setup/1).
+	:- mode(setup(+atom), zero_or_one).
+	:- info(setup/1, [
+		comment is 'Add text at some points',
+		argnames is ['SetupPointTerm']
+	]).
+
+	:- public(setup_ign/1).
+	:- mode(setup_ign(+atom), one).
+	:- info(setup_ign/1, [
+		comment is 'Try run setup at point, ignore it it did not defined',
+		argnames is ['SetupPointTerm']
+	]).
+
+	setup_ign(Term) :-
+		(::setup(Term) -> true; true).
 
 	:- public(begin_document/0).
 	begin_document:-

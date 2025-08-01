@@ -229,3 +229,104 @@
 		_Discipline_::title(Code, Title).
 
 :- end_object.
+
+:- object(yaml_object(_YAML_),
+	imports(yamlc)).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-01,
+		comment is 'Base class for YAML based virtual objects'
+	]).
+
+	:- protected(yaml_dom/1).
+	:- mode(yaml_dom(-atom), one).
+	:- info(yaml_dom/1, [
+		comment is 'Returns yaml dom tree',
+		argnames is ['YAML']
+	]).
+
+	yaml_dom(_YAML_).
+
+:- end_object.
+
+:- object(cc_indicator(_YAML_),
+	extends(yaml_object(_YAML_))).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-01,
+		comment is 'Description'
+	]).
+
+	:- public(title/1).
+	:- mode(title(?atom), one).
+	:- info(title/1, [
+		comment is 'The title of the index',
+		argnames is ['Title']
+	]).
+
+	title(Title) :-
+		::yaml(title, Title).
+
+	:- public(ksa/1).
+	:- mode(ksa(?atom), zero_or_more).
+	:- info(ksa/1, [
+		comment is 'Returns knowledge-skills-ability object',
+		argnames is ['KSA']
+	]).
+
+	ksa(Expr) :-
+		Expr =.. [Key, Value], % Key(Value)
+		::yaml(Key, Value).
+
+	% ..::able(V)
+
+:- end_object.
+
+
+:- object(cc_competence(_YAML_),
+	extends(yaml_object(_YAML_))).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-01,
+		comment is 'Competence of a CRM'
+	]).
+
+	:- use_module(library(lists), [member/2]).
+
+	indicator(cc_indicator(Index)) :-
+		::yaml(indices, List),
+		member(Index, List).
+
+:- end_object.
+
+:- object(cd_crm(_YAML_),
+	extends(yaml_object(_YAML_))).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-01,
+		comment is 'Describes Competence-Rule model'
+	]).
+
+	:- public(competence/2).
+	:- mode(competence(+atom, -object), one_or_more).
+	:- info(competence/2, [
+		comment is 'Describes competence in CRM',
+		argnames is ['TypeOfCompetene', 'CompetenceData']
+	]).
+
+
+	:- use_module(library(lists), [member/2]).
+
+	competence(Type, cd_competence(X)) :-
+		::yaml(Type, List),
+		member(X, List).
+
+:- end_object.

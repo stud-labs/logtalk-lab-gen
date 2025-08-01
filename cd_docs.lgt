@@ -49,7 +49,7 @@
 		version is 1:0:0,
 		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
 		date is 2025-07-21,
-		comment is 'Draw simple document'
+		comment is 'Draw course description document'
 	]).
 
 	:- public(department/1).
@@ -118,7 +118,11 @@
 		T::endrow,
 		T::end,
 		^^draw_cd_document_title(Options),
-		::draw_city(Options).
+		::draw_city(Options),
+		R::newpage,
+		R::cmd(tableofcontents),
+		R::newpage
+		.
 
 	:- protected(draw_city/1).
 	:- mode(draw_city(+list), one).
@@ -192,6 +196,15 @@
 
 :- end_object.
 
+:- object(cd_latex_renderer(_FileName_),
+	extends(latex_renderer(_FileName_))).
+
+	document_class(['12pt', '732'], studrep).
+
+	setup(after_begin_document) :-
+		::cmd('renewcommand{\\baselinestretch}{1.5}').
+
+:- end_object.
 
 :- object(cd_documents(_Discipline_),
 		extends(documents)
@@ -202,7 +215,7 @@
 			(
 				::discipline(D),
 				::file_name(D, FileName),
-				R = latex_renderer(FileName)
+				R = cd_latex_renderer(FileName)
 			),
 			(
 				^^start(R),

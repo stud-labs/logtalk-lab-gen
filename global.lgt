@@ -125,15 +125,15 @@
 		absolute_file_name(FileName, Dir, [relative_to(Dir1)]).
 
 	:- protected(yaml_dom/1).
+	:- dynamic(yaml_dom/1).
 	:- mode(yaml_dom(-atom), zero_or_one).
 	:- info(yaml_dom/1, [
 		comment is 'Store and return YAML DOM tree',
 		argnames is ['YamlDOM']
 	]).
 
-	:- use_module(library(yaml), [yaml_read/2, yaml_write/2, yaml_write/3]).
 
-	:- dynamic(yaml_dom/1).
+	:- use_module(library(yaml), [yaml_read/2, yaml_write/2, yaml_write/3]).
 
 	:- public(syllabus/1).
 	:- mode(syllabus(?atom), zero_or_one).
@@ -144,27 +144,9 @@
 
 	:- use_module(library(lists), [member/2]).
 
-	% syllabus(path_name(PathName)) :-
-	% 	::yaml(config/dircode, DirCode),
-	% 	::yaml(config/year, Year),
-	% 	::yaml(directions, Directions),
-	% 	member(X, Directions),
-	% 	Year = X.get(year),
-	% 	DirCode = X.get(code), !,
-	% 	(
-	% 		Path = X.get(basepath)
-	% 		;
-	% 		RelPath = X.get(relpath),
-	% 		base_config(base_dir(cwd(RelPath, Path)))
-	% 	),
-	% 	SQLIte = X.get(database/sqlite),
-	% 	::at_dir(Path, SQLIte, PathName),
-	% 	true.
-
 	syllabus(path_name(PathName)) :-
 		::yaml(config/dircode, DirCode),
 		::yaml(config/year, Year),
-		% debugger::trace,
 		::yaml(directions/[year=Year,code=DirCode], X),
 		Year = X.get(year),
 		DirCode = X.get(code), !,
@@ -175,8 +157,7 @@
 			base_config(base_dir(cwd(RelPath, Path)))
 		),
 		SQLIte = X.get(database/sqlite),
-		::at_dir(Path, SQLIte, PathName),
-		true.
+		::at_dir(Path, SQLIte, PathName).
 
 	:- protected(at_base/2).
 	:- mode(at_base(+atom, ?atom), one).
