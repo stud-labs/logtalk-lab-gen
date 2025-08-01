@@ -43,7 +43,11 @@
 
 :- object(cd_document(_Renderer_, _Discipline_),
 	extends(document(_Renderer_)),
-	imports([departmentc, approvalc, cd_titlec])).
+	imports([departmentc
+			 , approvalc
+			 , cd_titlec
+			 , cd_aimsproblemsc
+	])).
 
 	:- info([
 		version is 1:0:0,
@@ -73,6 +77,7 @@
 	department(cd_chair).
 	approval(cd_approval).
 	cd_title_page(cd_cd_title_page(_Discipline_)).
+	cd_aims_problems(cd_aims_problems(_Discipline_)).
 
 	draw:-
 		::draw(plain,
@@ -121,7 +126,8 @@
 		::draw_city(Options),
 		R::newpage,
 		R::cmd(tableofcontents),
-		R::newpage
+		R::newpage,
+		^^draw_aims_problems(plain, Options)
 		.
 
 	:- protected(draw_city/1).

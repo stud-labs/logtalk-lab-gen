@@ -286,7 +286,6 @@
 
 :- end_object.
 
-
 :- object(cc_competence(_YAML_),
 	extends(yaml_object(_YAML_))).
 
@@ -328,5 +327,11 @@
 	competence(Type, cd_competence(X)) :-
 		::yaml(Type, List),
 		member(X, List).
+
+:- end_object.
+
+
+:- object(cd_aims_problems(_Discipline_),
+	implements(aims_problemsp)).
 
 :- end_object.

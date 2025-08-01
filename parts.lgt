@@ -445,3 +445,37 @@
 	]).
 
 :- end_protocol.
+
+:- protocol(aims_problemsp).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-01,
+		comment is 'Defines protocol for Discilpine Aims and problems'
+	]).
+
+:- end_protocol.
+
+:- category(aims_problemsc).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-01,
+		comment is 'Defines routines drawing Discilpine Aims and problems'
+	]).
+
+	:- public(draw_aims_problems/2).
+	:- mode(draw_aims_problems(+atom, +list), one).
+	:- info(draw_aims_problems/2, [
+		comment is 'Draws part with aims and problems of a CD',
+		argnames is ['Style', 'Options']
+	]).
+
+	draw_aims_problems(plain, Options) :-
+		D = _Discipline_,
+		::renderer(R),
+		R::run_ln('Section!').
+
+:- end_category.
