@@ -46,7 +46,7 @@
 	imports([departmentc
 			 , approvalc
 			 , cd_titlec
-			 , aims_problemsc(_Discipline_)
+			 , aims_problemsc
 	])).
 
 	:- info([
@@ -70,6 +70,12 @@
 		argnames is ['CDTitlePageObject']
 	]).
 
+	:- public(cd_aims_problems/1).
+	:- mode(cd_aims_problems(-object), zero_or_one).
+	:- info(cd_aims_problems/1, [
+		comment is 'Defines aim and problems data sources',
+		argnames is ['CDAimsProblemsObject']
+	]).
 
 	% department(departement_imit).
 	company_logo('isu-logo.png', [width='1.5cm']).
@@ -145,7 +151,7 @@
 			R::run_ln,
 			R::end(center); true ).
 
-   :- public(connect_db/0).
+   :- protected(connect_db/0).
    :- mode(connect_db, zero_or_one).
    :- info(connect_db/0, [
       comment is 'Connect PMI SQLIte database'
@@ -156,7 +162,33 @@
 		global::syllabus(path_name(PathName)),
 		sql_connection::connect(PathName, _Conn).
 
-	:- initialization(::connect_db).
+	:- protected(connect_crm/0).
+	:- mode(connect_crm, zero_or_one).
+	:- info(connect_crm/0, [
+		comment is 'Connect CRM YAML data'
+	]).
+
+	connect_crm :-
+		global::crm(path_name(PathName)),
+		O = yaml_object(none),
+		O::yaml_load(PathName, YAML),
+		retractall(crm_yaml(_)),
+		assertz(crm_yaml(YAML)).
+
+	:- protected(crm_yaml/1).
+	:- dynamic(crm_yaml/1).
+	:- mode(crm_yaml(-atom), zero_or_one).
+	:- info(crm_yaml/1, [
+		comment is 'Store CRM YAML',
+		argnames is ['YAMLAtom']
+	]).
+
+	:- initialization(
+			(
+				::connect_db,
+				::connect_crm
+			)
+		).
 
 :- end_object.
 

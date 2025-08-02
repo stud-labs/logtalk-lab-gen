@@ -123,7 +123,12 @@
 		cmd(Cmd),
 		cmd(T).
 	cmd(Cmd):-
-		::run('\\~w ', [Cmd]).
+		::run('\\~w~n', [Cmd]).
+
+	:- public(cmd/2).
+	cmd(Pattern, Parameters):-
+		format(atom(S), Pattern, Parameters),
+		::run('\\~w', [S]).
 
 	:- public(run/1).
 	run(Number):-
@@ -354,6 +359,39 @@
 	require_package([final], hyperref).
 	require_package([protrusion=false,expansion=false],microtype).
 	require_package([russian,english], babel).
+
+	:- public(section/3).
+	:- mode(section(+integer, +atom, +atom), one).
+	:- info(section/3, [
+		comment is 'Starts section of a level with a label.',
+		argnames is ['Level', 'Title', 'Label']
+	]).
+
+	section(Level, Title, Label) :-
+		section_name(Level, SectionName),
+		::cmd('~w{~w}', [SectionName, Title]),
+		(Label \= none ->
+			::cmd('label{~w}', [Label]) ; true),
+		::run_ln.
+
+	section_name(1, section).
+	section_name(2, subsection).
+	section_name(3, subsubsection).
+	section_name(4, subsubsubsection).
+	section_name(5, paragraph).
+	section_name(6, subparagraph).
+
+	:- public(section/2).
+	:- mode(section(+integer, +atom), one).
+	:- info(section/2, [
+		comment is 'Starts section of a level without labels.',
+		argnames is ['Level', 'Title']
+	]).
+
+	section(Level, Title) :-
+		section_name(Level, SectionName),
+		::cmd('~w{~w}', [SectionName, Title]),
+		::run_ln.
 
 :- end_object.
 

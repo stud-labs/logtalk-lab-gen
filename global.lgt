@@ -145,19 +145,41 @@
 	:- use_module(library(lists), [member/2]).
 
 	syllabus(path_name(PathName)) :-
+		::direction(path_name(Direction, Path)),
+		SQLIte = Direction.get(database/sqlite),
+		::at_dir(Path, SQLIte, PathName).
+
+	:- public(direction/1).
+	:- mode(direction(-atom), zero_or_one).
+	:- info(direction/1, [
+		comment is 'Recognize direction dictionary in the YAML',
+		argnames is ['YAMLDictionary']
+	]).
+
+	direction(path_name(Direction, Path)) :-
 		::yaml(config/dircode, DirCode),
 		::yaml(config/year, Year),
-		::yaml(directions/[year=Year,code=DirCode], X),
-		Year = X.get(year),
-		DirCode = X.get(code), !,
+		::yaml(directions/[year=Year,code=DirCode], Direction),
+		Year = Direction.get(year),
+		DirCode = Direction.get(code), !,
 		(
-			Path = X.get(basepath)
+			Path = Direction.get(basepath)
 			;
-			RelPath = X.get(relpath),
+			RelPath = Direction.get(relpath),
 			base_config(base_dir(cwd(RelPath, Path)))
-		),
-		SQLIte = X.get(database/sqlite),
-		::at_dir(Path, SQLIte, PathName).
+		).
+
+	:- public(crm/1).
+	:- mode(crm(-atom), zero_or_one).
+	:- info(crm/1, [
+		comment is 'Return CRM path name, depending context',
+		argnames is ['CRMConfigData']
+	]).
+
+	crm(path_name(PathName)) :-
+		::direction(path_name(D, Path)),
+		CRM = D.get(crm),
+		::at_dir(Path, CRM, PathName).
 
 	:- protected(at_base/2).
 	:- mode(at_base(+atom, ?atom), one).

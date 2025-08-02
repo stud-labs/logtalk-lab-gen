@@ -455,9 +455,72 @@
 		comment is 'Defines protocol for Discilpine Aims and problems'
 	]).
 
+	:- public(aim/1).
+	:- mode(aim(-list), one).
+	:- info(aim/1, [
+		comment is 'Define set of aims, normally just one',
+		argnames is ['AtomOrListOfSentences']
+	]).
+
+	:- public(problems/1).
+	:- mode(problems(-list), one).
+	:- info(problems/1, [
+		comment is 'Define set of problems, normally many',
+		argnames is ['AtomOrListOfSentences']
+	]).
+
 :- end_protocol.
 
-:- category(aims_problemsc(_Discipline_)).
+:- category(enumerationc,
+	extends(exoptions)).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-01,
+		comment is 'Various enumerators for single data'
+	]).
+
+	:- public(itemize_list/2).
+	:- mode(itemize_list(+list, +list), zero_or_more).
+	:- info(itemize_list/2, [
+		comment is 'Draw list items as items of item list',
+		argnames is ['List', 'Options']
+	]).
+
+	itemize_list(List, Options) :-
+		is_list(List), !,
+		::option(itemize(Environment), Options, itemize(itemize)),
+		::renderer(R),
+		R::begin(Environment),
+		itemize_list_(List, R, Options),
+		R::end(Environment).
+
+	itemize_list(Atom, Options) :-
+		(
+			::option(single_as_list, Options) ->
+			itemize_list([Atom], Options)
+			;
+			::renderer(R),
+			R::run_ln(Atom),
+			R::par
+		).
+
+	:- use_module(library(lists), [member/2]).
+
+	itemize_list_(List, Renderer, _Options) :-
+		forall(member(Item, List),
+			(
+				Renderer::cmd(item),
+				Renderer::run(' ~w', [Item]),
+				Renderer::run_ln
+			)
+		).
+
+:- end_category.
+
+:- category(aims_problemsc,
+	extends(enumerationc)).
 
 	:- info([
 		version is 1:0:0,
@@ -474,8 +537,16 @@
 	]).
 
 	draw_aims_problems(plain, _Options) :-
-		_D = _Discipline_,
+		::cd_aims_problems(D),
 		::renderer(R),
-		R::run_ln('Section!').
+		R::section(1,'ЦЕЛИ И ЗАДАЧИ ДИСЦИПЛИНЫ (МОДУЛЯ)', 'sec:aims'),
+		R::par,
+		R::boldface(R::run('Цель: ')),
+		D::aim(Aims),
+		^^itemize_list(Aims, [itemize(itemize)]),
+		R::boldface(R::run('Задачи: ')),
+		D::problems(Problems),
+		^^itemize_list(Problems, [itemize(enumerate)])
+		.
 
 :- end_category.

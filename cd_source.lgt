@@ -251,7 +251,7 @@
 
 :- end_object.
 
-:- object(cc_indicator(_YAML_),
+:- object(cd_indicator(_YAML_),
 	extends(yaml_object(_YAML_))).
 
 	:- info([
@@ -282,11 +282,9 @@
 		Expr =.. [Key, Value], % Key(Value)
 		::yaml(Key, Value).
 
-	% ..::able(V)
-
 :- end_object.
 
-:- object(cc_competence(_YAML_),
+:- object(cd_competence(_YAML_),
 	extends(yaml_object(_YAML_))).
 
 	:- info([
@@ -298,7 +296,7 @@
 
 	:- use_module(library(lists), [member/2]).
 
-	indicator(cc_indicator(Index)) :-
+	indicator(cd_indicator(Index)) :-
 		::yaml(indices, List),
 		member(Index, List).
 
@@ -333,5 +331,14 @@
 
 :- object(cd_aims_problems(_Discipline_),
 	implements(aims_problemsp)).
+
+	aim('Выработать у студентов навыки целенаправленного системного мышления.').
+
+	problems([
+		'Представить системный подход, его свойства и варианты;',
+		'Рассмотреть разнообразные инженерные задачи, представимые при помощи системного подхода;',
+		'Продемонстрировать целенаправленные операции над системными моделями приводящими к заданному результату;',
+		'Освоить базовый набор опаерааций для решения задач.'
+  ]).
 
 :- end_object.
