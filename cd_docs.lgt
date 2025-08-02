@@ -1,5 +1,3 @@
-
-
 :- object(approval(
 		_TypeTitle_,
 		_Position_,
@@ -16,7 +14,6 @@
 	number(_Number_).
 
 :- end_object.
-
 
 :- object(cd_title_page,
 	implements(cd_title_pagep)).
@@ -47,6 +44,8 @@
 			 , approvalc
 			 , cd_titlec
 			 , aims_problemsc
+			 , yamlc
+			 , requirementsc
 	])).
 
 	:- info([
@@ -84,6 +83,8 @@
 	approval(cd_approval).
 	cd_title_page(cd_cd_title_page(_Discipline_)).
 	cd_aims_problems(cd_aims_problems(_Discipline_)).
+	cd_crm(crm(YAML)) :-
+		::yaml_dom(crm(YAML)).
 
 	draw:-
 		::draw(plain,
@@ -117,9 +118,8 @@
 			]).
 
 	draw(plain, Options) :-
-		% ^^draw_company_logo(centering, Options),
-		^^draw_department_title(centering, Options),
 		::renderer(R),
+		^^draw_department_title(centering, Options),
 		T = tabularx(R, []),
 		::option(width(Width), Options,
 			width('\\columnwidth')),
@@ -133,7 +133,8 @@
 		R::newpage,
 		R::cmd(tableofcontents),
 		R::newpage,
-		^^draw_aims_problems(plain, Options)
+		^^draw_aims_problems(plain, Options),
+		^^draw_requirements(plain, Options)
 		.
 
 	:- protected(draw_city/1).
@@ -158,7 +159,6 @@
    ]).
 
 	connect_db :-
-		% debugger::trace,
 		global::syllabus(path_name(PathName)),
 		sql_connection::connect(PathName, _Conn).
 
@@ -170,16 +170,15 @@
 
 	connect_crm :-
 		global::crm(path_name(PathName)),
-		O = yaml_object(none),
-		O::yaml_load(PathName, YAML),
-		retractall(crm_yaml(_)),
-		assertz(crm_yaml(YAML)).
+		^^yaml_load(PathName, YAML),
+		retractall(yaml_dom(crm(_))),
+		assertz(yaml_dom(crm(YAML))).
 
-	:- protected(crm_yaml/1).
-	:- dynamic(crm_yaml/1).
-	:- mode(crm_yaml(-atom), zero_or_one).
-	:- info(crm_yaml/1, [
-		comment is 'Store CRM YAML',
+	:- protected(yaml_dom/1).
+	:- dynamic(yaml_dom/1).
+	:- mode(yaml_dom(-atom), zero_or_one).
+	:- info(yaml_dom/1, [
+		comment is 'Store a YAML with a context',
 		argnames is ['YAMLAtom']
 	]).
 

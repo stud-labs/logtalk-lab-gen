@@ -550,3 +550,39 @@
 		.
 
 :- end_category.
+
+
+:- category(requirementsc,
+	extends(exoptions)).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-02,
+		comment is 'Processes requirements section'
+	]).
+
+	:- public(draw_requirements/2).
+	:- mode(draw_requirements(+atom, +list), zero_or_one).
+	:- info(draw_requirements/2, [
+		comment is 'Draws requirements section in document',
+		argnames is ['Style', 'Options']
+	]).
+
+	draw_requirements(plain, _Options) :-
+		::renderer(R),
+		R::section(1, 'ТРЕБОВАНИЯ К РЕЗУЛЬТАТАМ ОСВОЕНИЯ ДИСЦИПЛИНЫ'),
+		R::run('Процесс освоения дисциплины направлен на формирование компетенций (элементов следующих компетенций) в соответствии с ФГОС ВО и ОП ВО по данному направлению подготовки.'),
+		R::begin(center),
+		R::boldface(R::run('Перечень планируемых результатов обучения по дисциплине (модулю), соотнесенных с индикаторами достижения компетенций')),
+		R::end(center),
+		R::begin(longtable,'{|p{3cm}|p{5cm}|p{17cm}}'),
+		R::cmd(hline),
+		R::boldface(R::run('Компетенция')), R::tab,
+		R::boldface(R::run('Индикаторы компетенций')), R::tab,
+		R::boldface(R::run('Результаты обучения')), R::nl,
+		R::cmd(hline),
+		R::cmd(endhead),
+		R::end(longtable).
+% https://mirror.funkfreundelandshut.de/latex/macros/latex/contrib/tabularray/tabularray.pdf
+:- end_category.

@@ -60,7 +60,6 @@
 
 :- end_object.
 
-
 :- object(cd_ministry,
 	implements(departmentp)).
 
