@@ -429,7 +429,6 @@
 		T::tab, T::tab,
 		(CD::recommended_by(RecBy) ->
 		 ::draw_approval(RecBy, plain, AOptions); true),
-		T::endrow,
 		T::end,
 		R::end(center).
 
@@ -569,20 +568,19 @@
 		argnames is ['Style', 'Options']
 	]).
 
-	draw_requirements(plain, _Options) :-
+	draw_requirements(plain, Options) :-
 		::renderer(R),
 		R::section(1, 'ТРЕБОВАНИЯ К РЕЗУЛЬТАТАМ ОСВОЕНИЯ ДИСЦИПЛИНЫ'),
 		R::run('Процесс освоения дисциплины направлен на формирование компетенций (элементов следующих компетенций) в соответствии с ФГОС ВО и ОП ВО по данному направлению подготовки.'),
 		R::begin(center),
 		R::boldface(R::run('Перечень планируемых результатов обучения по дисциплине (модулю), соотнесенных с индикаторами достижения компетенций')),
 		R::end(center),
-		R::begin(longtable,'{|p{3cm}|p{5cm}|p{17cm}}'),
-		R::cmd(hline),
-		R::boldface(R::run('Компетенция')), R::tab,
-		R::boldface(R::run('Индикаторы компетенций')), R::tab,
-		R::boldface(R::run('Результаты обучения')), R::nl,
-		R::cmd(hline),
-		R::cmd(endhead),
-		R::end(longtable).
+		T=longtblr(R, [hline(_), Options]),
+		% T::begin([colspec='{|2X|3X|6X|}']),
+		T::begin([colspec='{|X|X|X|}']),
+		R::boldface(R::run('Компетенция')), T::tab,
+		R::boldface(R::run('Индикаторы компетенций')), T::tab,
+		R::boldface(R::run('Результаты обучения')),
+		T::end.
 % https://mirror.funkfreundelandshut.de/latex/macros/latex/contrib/tabularray/tabularray.pdf
 :- end_category.

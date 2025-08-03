@@ -126,9 +126,10 @@
 		T::begin(Width,'XXX'),
 		T::tab, T::tab,
 		^^draw_approval(plain, Options),
-		T::endrow,
 		T::end,
+		R::vspace('2em'),
 		^^draw_cd_document_title(Options),
+		R::cmd(vfill),
 		::draw_city(Options),
 		R::newpage,
 		R::cmd(tableofcontents),
@@ -146,7 +147,6 @@
 	draw_city(Options) :-
 		::renderer(R),
 		(::option(city(City, Year), Options) ->
-			R::cmd(vfill),
 			R::begin(center),
 			R::run(City), R::run('~~--~~'), R::run(Year),
 			R::run_ln,

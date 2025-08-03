@@ -203,7 +203,7 @@
 
 	:- public(nl/0).
 	nl:-
-	 run_ln('\\\\~n').
+	 run('\\\\~n').
 
 	:- public(nl/1).
 	nl(Size):-
@@ -535,20 +535,42 @@
 
 :- end_category.
 
-:- object(tabularx(_Renderer_, _Options_),
-   imports(exoptions)).
+:- object(tabular(_Renderer_, _Options_),
+	imports(exoptions)).
+
+	:- protected(env_name/1).
+	:- mode(env_name(-atom), one).
+	:- info(env_name/1, [
+		comment is 'Name of the environment',
+		argnames is ['NameOfEnvironment']
+	]).
+
+	env_name(tabular).
 
 	:- public(begin/2).
 	:- mode(begin(+atom, +atom), one).
 	:- info(begin/2, [
-		comment is 'draw tablarx header',
+		comment is 'Draw table header.',
 		argnames is ['Width', 'ColumnDefinition']
 	]).
 
 	begin(Width, Columns) :-
 		R = _Renderer_,
 		format(atom(Args), '{~w}{~w}', [Width, Columns]),
-		R::begin(tabularx, Args).
+		::env_name(EnvName),
+		R::begin(EnvName, Args),
+		cond_hline.
+
+	:- public(cond_hline/0).
+	:- mode(cond_hline, one).
+	:- info(cond_hline/0, [
+		comment is 'Add cmd(hline) if _Options_ has hline(..)'
+	]).
+
+	cond_hline :-
+		::env_name(EnvName),
+		(::option(hline(EnvName), _Options_) ->
+			::hline; true).
 
 	:- public(endrow/0).
 	:- mode(endrow, one).
@@ -559,9 +581,7 @@
 	endrow :-
 		R = _Renderer_,
 		R::nl,
-		(::option(hline(tabular), _Options_) ->
-			::hline, R::nl ;
-		true).
+		cond_hline.
 
 	:- public(hline/0).
 	:- mode(hline, one).
@@ -572,7 +592,6 @@
 	hline :-
 		_Renderer_::cmd(hline),
 		_Renderer_::run_ln.
-
 
 	:- public(tab/0).
 	:- mode(tab, one).
@@ -591,6 +610,57 @@
 	]).
 
 	end :-
-		_Renderer_::end(tabularx).
+		::endrow,
+		::env_name(EnvName),
+		_Renderer_::end(EnvName).
+
+:- end_object.
+
+:- object(tabularx(_Renderer_, _Options_),
+   extends(tabular(_Renderer_, _Options_))).
+
+	env_name(tabularx).
+
+:- end_object.
+
+:- object(longtable(_Renderer_, _Options_),
+   extends(tabular(_Renderer_, _Options_))).
+
+	env_name(longtable).
+
+:- end_object.
+
+:- object(tblr(_Renderer_, _Options_),
+   extends(tabular(_Renderer_, _Options_))).
+
+	:- public(begin/1).
+	:- mode(begin(+list), one).
+	:- info(begin/1, [
+		comment is 'Draw *tblr header',
+		argnames is ['TableSpecificationList']
+	]).
+
+	:- use_module(library(lists), [member/2]).
+
+	begin(Specifications) :-
+		R = _Renderer_,
+		::env_name(EnvName),
+		R::begin(EnvName), R::run('{'),R::run_ln,
+		forall(member(Key=Value, Specifications),
+			(
+				R::run('~w = ~w,',[Key, Value]), R::run_ln
+			)
+		),
+		R::run("}"), R::run_ln,
+		^^cond_hline.
+
+	env_name(tblr).
+
+:- end_object.
+
+:- object(longtblr(_Renderer_, _Options_),
+   extends(tblr(_Renderer_, _Options_))).
+
+	env_name(longtblr).
 
 :- end_object.
