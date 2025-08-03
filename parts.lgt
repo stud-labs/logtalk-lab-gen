@@ -576,17 +576,16 @@
 		R::boldface(R::run('Перечень планируемых результатов обучения по дисциплине (модулю), соотнесенных с индикаторами достижения компетенций')),
 		R::end(center),
 		T=longtblr(R, [hline(_), Options]),
-		% T::begin([colspec='{|2X|3X|6X|}']),
 		T::begin(['caption={Cap}'],
 			[
 				'colspec={|X[18,l]|X[36,l]|X[60,l]|}'
 				, 'width=\\linewidth'
-				, 'cell{1,1}{1,3} = {c,cmd=\\bfseries}'
+				, 'cell{1}{1-3} = {c,cmd=\\bfseries}'
 				% , 'rowhead=1'
 			]),
-		R::boldface(R::run('Компетенция')), T::tab,
-		R::boldface(R::run('Индикаторы компетенций')), T::tab,
-		R::boldface(R::run('Результаты обучения')),
+		R::run('Компетенция'), T::tab,
+		R::run('Индикаторы компетенций'), T::tab,
+		R::run('Результаты обучения'),
 		T::end.
 % https://mirror.funkfreundelandshut.de/latex/macros/latex/contrib/tabularray/tabularray.pdf
 :- end_category.
