@@ -501,7 +501,7 @@
 			itemize_list([Atom], Options)
 			;
 			::renderer(R),
-			R::run_ln(Atom),
+			R::run(Atom),
 			R::par
 		).
 
