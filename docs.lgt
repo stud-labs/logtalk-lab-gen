@@ -321,6 +321,13 @@
 		::cmd('setsansfont[Scale=1,ItalicFont=Fira Sans Italic,BoldFont=Fira Sans Bold,BoldItalicFont=Fira Sans Bold Italic,]{Fira Sans Regular}'),
 		::cmd('newcounter{mytableline}'),
 		::run('\\DeclareUrlCommand\\uscore{\\urlstyle{tt}}'),
+		::run('
+			\\DefTblrTemplate{contfoot-text}{default}{}
+			\\DefTblrTemplate{conthead-text}{default}{}
+			\\DefTblrTemplate{caption}{default}{}
+			\\DefTblrTemplate{conthead}{default}{}
+			\\DefTblrTemplate{capcont}{default}{}
+		'),
 		true.
 
 	:- public(open_stream/0).

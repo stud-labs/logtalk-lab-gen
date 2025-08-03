@@ -580,12 +580,20 @@
 		R::boldface(R::run('Перечень планируемых результатов обучения по дисциплине (модулю), соотнесенных с индикаторами достижения компетенций')),
 		R::end(center),
 		T=longtblr(R, [hline(_), Options]),
-		T::begin(['caption={Cap}'],
+		T::begin(
+			[
+				'caption=empty'
+			],
 			[
 				'colspec={|X[18,l]|X[36,l]|X[60,l]|}'
+				% , 'conthead-foot=empty'
+				% , 'conthead-text=empty'
+				% , 'caption-tag=empty'
+				% , 'caption-sep=empty'
+				% , 'caption-text=empty'
 				, 'width=\\linewidth'
 				, 'cell{1}{1-3} = {c,cmd=\\bfseries}'
-				% , 'rowhead=1'
+				, 'rowhead=1'
 			]),
 		R::run('Компетенция'), T::tab,
 		R::run('Индикаторы компетенций'), T::tab,
