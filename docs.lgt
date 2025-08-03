@@ -633,22 +633,31 @@
 :- object(tblr(_Renderer_, _Options_),
    extends(tabular(_Renderer_, _Options_))).
 
-	:- public(begin/1).
-	:- mode(begin(+list), one).
-	:- info(begin/1, [
+	:- public(begin/2).
+	:- mode(begin(+list, +list), one).
+	:- info(begin/2, [
 		comment is 'Draw *tblr header',
-		argnames is ['TableSpecificationList']
+		argnames is ['TableParameterList',
+					'TableSpecificationList']
 	]).
 
 	:- use_module(library(lists), [member/2]).
 
-	begin(Specifications) :-
+	begin(Parameters, Specifications) :-
 		R = _Renderer_,
 		::env_name(EnvName),
-		R::begin(EnvName), R::run('{'),R::run_ln,
-		forall(member(Key=Value, Specifications),
+		R::begin(EnvName),
+		R::run('['),R::run_ln,
+		forall(member(Par, Parameters),
 			(
-				R::run('~w = ~w,',[Key, Value]), R::run_ln
+				R::run('~w,',[Par]), R::run_ln
+			)
+		),
+		R::run("]"),
+		R::run('{'),R::run_ln,
+		forall(member(Spec, Specifications),
+			(
+				R::run('~w,',[Spec]), R::run_ln
 			)
 		),
 		R::run("}"), R::run_ln,
