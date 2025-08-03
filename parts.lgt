@@ -568,8 +568,12 @@
 		argnames is ['Style', 'Options']
 	]).
 
+	:- use_module(user, [length/2]).
+	:- use_module(library(lists), [member/2]).
+
 	draw_requirements(plain, Options) :-
 		::renderer(R),
+		::cd_requirements(Req),
 		R::section(1, 'ТРЕБОВАНИЯ К РЕЗУЛЬТАТАМ ОСВОЕНИЯ ДИСЦИПЛИНЫ'),
 		R::run('Процесс освоения дисциплины направлен на формирование компетенций (элементов следующих компетенций) в соответствии с ФГОС ВО и ОП ВО по данному направлению подготовки.'),
 		R::begin(center),
@@ -586,6 +590,40 @@
 		R::run('Компетенция'), T::tab,
 		R::run('Индикаторы компетенций'), T::tab,
 		R::run('Результаты обучения'),
+		forall(Req::competence(_Type, Comp),
+			(
+				findall(Ind, Comp::indicator(Ind), Indicators),
+				length(Indicators, LI),
+				Indicators = [FirsI | Others],
+				T::endrow,
+				R::run('\\SetCell[r=~w]{l}', [LI]),
+				draw_catalog_entry(Comp, T, R),
+				T::tab,
+				draw_catalog_entry(FirsI, T, R),
+				T::tab,
+				forall(member(Ind, Others),
+					(
+						T::endrow,
+						T::tab,
+						draw_catalog_entry(Ind, T, R),
+						T::tab
+					)
+				)
+			)
+		),
 		T::end.
 % https://mirror.funkfreundelandshut.de/latex/macros/latex/contrib/tabularray/tabularray.pdf
+
+	draw_catalog_entry(Entry, _T, R) :-
+		Entry::code(Code),
+		Entry::title(Title),
+		R::boldface(
+			(
+				R::cmd(noindent),
+				R::run(Code)
+			)
+		),
+		R::par,
+		R::run(Title).
+
 :- end_category.

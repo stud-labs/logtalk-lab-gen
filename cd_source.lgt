@@ -60,6 +60,24 @@
 
 :- end_object.
 
+:- protocol(catalog_entryp).
+
+	:- public(code/1).
+	:- mode(code(?atom), zero_or_one).
+	:- info(code/1, [
+		comment is 'Catalog entry code',
+		argnames is ['Code']
+	]).
+
+	:- public(title/1).
+	:- mode(title(?atom), zero_or_one).
+	:- info(title/1, [
+		comment is 'Catalog entry title',
+		argnames is ['Title']
+	]).
+
+:- end_protocol.
+
 :- object(cd_ministry,
 	implements(departmentp)).
 
@@ -250,7 +268,19 @@
 
 :- end_object.
 
-:- object(cd_indicator(_YAML_),
+:- protocol(ksap).
+
+	:- public(ksa/1).
+	:- mode(ksa(?atom), zero_or_more).
+	:- info(ksa/1, [
+		comment is 'Returns knowledge-skills-ability object',
+		argnames is ['KSA']
+	]).
+
+:- end_protocol.
+
+:- object(y_indicator(_YAML_),
+	implements(ksap),
 	extends(yaml_object(_YAML_))).
 
 	:- info([
@@ -260,30 +290,25 @@
 		comment is 'Description'
 	]).
 
-	:- public(title/1).
-	:- mode(title(?atom), one).
-	:- info(title/1, [
-		comment is 'The title of the index',
-		argnames is ['Title']
-	]).
-
-	title(Title) :-
-		::yaml(title, Title).
-
-	:- public(ksa/1).
-	:- mode(ksa(?atom), zero_or_more).
-	:- info(ksa/1, [
-		comment is 'Returns knowledge-skills-ability object',
-		argnames is ['KSA']
-	]).
-
 	ksa(Expr) :-
 		Expr =.. [Key, Value], % Key(Value)
 		::yaml(Key, Value).
 
 :- end_object.
 
-:- object(cd_competence(_YAML_),
+:- protocol(indicatorp).
+
+	:- public(indicator/1).
+	:- mode(indicator(-object), one_or_more).
+	:- info(indicator/1, [
+		comment is 'Defines indicator for a competence',
+		argnames is ['IndicatorObject']
+	]).
+
+:- end_protocol.
+
+:- object(y_competence(_YAML_),
+	implements(indicatorp),
 	extends(yaml_object(_YAML_))).
 
 	:- info([
@@ -295,13 +320,25 @@
 
 	:- use_module(library(lists), [member/2]).
 
-	indicator(cd_indicator(Index)) :-
+	indicator(y_indicator(Index)) :-
 		::yaml(indices, List),
 		member(Index, List).
 
 :- end_object.
 
-:- object(cd_crm(_YAML_),
+:- protocol(competence_listp).
+
+	:- public(competence/2).
+	:- mode(competence(+atom, -object), one_or_more).
+	:- info(competence/2, [
+		comment is 'Describes competence in CRM',
+		argnames is ['TypeOfCompetene', 'CompetenceData']
+	]).
+
+:- end_protocol.
+
+:- object(y_crm(_YAML_),
+	implements(competence_listp),
 	extends(yaml_object(_YAML_))).
 
 	:- info([
@@ -311,22 +348,13 @@
 		comment is 'Describes Competence-Rule model'
 	]).
 
-	:- public(competence/2).
-	:- mode(competence(+atom, -object), one_or_more).
-	:- info(competence/2, [
-		comment is 'Describes competence in CRM',
-		argnames is ['TypeOfCompetene', 'CompetenceData']
-	]).
-
-
 	:- use_module(library(lists), [member/2]).
 
-	competence(Type, cd_competence(X)) :-
+	competence(Type, y_competence(X)) :-
 		::yaml(Type, List),
 		member(X, List).
 
 :- end_object.
-
 
 :- object(cd_aims_problems(_Discipline_),
 	implements(aims_problemsp)).
@@ -339,5 +367,171 @@
 		'Продемонстрировать целенаправленные операции над системными моделями приводящими к заданному результату;',
 		'Освоить базовый набор опаерааций для решения задач.'
   ]).
+
+:- end_object.
+
+:- protocol(requirementsp).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-03,
+		comment is 'Describes competencies for a discipline'
+	]).
+
+	:- public(competence/2).
+	:- mode(competence(+atom, -object), one_or_more).
+	:- info(competence/2, [
+		comment is 'Describes competence in CRM',
+		argnames is ['TypeOfCompetene', 'CompetenceData']
+	]).
+
+:- end_protocol.
+
+:- object(cd_indicator(_Code_, _Title_),
+	implements([catalog_entryp])).
+
+	title(_Title_).
+	code(_Code_).
+
+:- end_object.
+
+:- object(cd_competence(_Code_, _Title_, _Indicators_),
+	implements([indicatorp, catalog_entryp]),
+	imports(exoptions)).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-03,
+		comment is 'Competence originating from database'
+	]).
+
+	title(_Title_).
+	code(_Code_).
+
+	:- use_module(library(lists), [member/2]).
+
+	indicator(cd_indicator(Code, Title)) :-
+		member(Code-Title, _Indicators_).
+
+:- end_object.
+
+:- object(cd_requirements(_Discipline_),
+	implements([competence_listp, requirementsp])).
+
+	:- use_module(library(lists), [member/2]).
+
+	competence(undefined, cd_competence(Code, Title, Indicators)) :-
+		D = _Discipline_, !,
+		D::cd_competence(competence(Code), Title),
+		findall(CCode-CTitle,
+			D::cd_competence(indicator(CCode, Code), CTitle),
+			Indicators),
+		% write(cd_competence(Code, Title, Indicators)), nl.
+		true.
+
+:- end_object.
+
+:- object(cd_discipline(_Code_, _Title_),
+	implements(disciplinep),
+	imports(exoptions)).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-07-27,
+		comment is 'Defines discipline object connected to the databse.'
+	]).
+
+	title(Code, Title) :-
+		::get_where(W), !,
+		format(atom(Q), 'SELECT l.ДисциплинаКод, l.Дисциплина FROM дсСтроки as l WHERE ~w;', [W]),
+		sql_connection::query(Q, row(Code1, Title1)),
+		Code1 = Code, Title1 = Title.
+
+	:- public(cd_competence/2).
+	:- mode(cd_competence(?atom, ?atom), one_or_more).
+	:- info(cd_competence/2, [
+		comment is 'Query database for competence',
+		argnames is ['CompetenceCode', 'CompetenceTitle']
+	]).
+
+	cd_competence(indicator(ICode, Code), ITitle) :-
+		::get_where(W), !,
+		format(atom(Q),
+			'
+			SELECT
+				c.ШифрКомпетенции, c.Наименование
+			FROM дсСтроки as l
+			JOIN дсКомпетенцииДисциплины as cd
+				ON cd.вкСтроки = l.пк
+			JOIN дсКомпетенции as c
+				ON cd.вкКомпетенции = c.пк
+			JOIN дсКомпетенции as pc
+				ON c.вкРодителя = pc.пк
+			WHERE
+				pc.ШифрКомпетенции=\'~w\'
+				AND
+				~w
+			ORDER BY
+				c.ШифрКомпетенции;
+			', [Code, W]),
+		% write(Q), nl,
+		sql_connection::query(Q, row(Code1, Title1)),
+		ICode=Code1, ITitle=Title1.
+
+	cd_competence(competence(Code), Title) :-
+		::get_where(W), !,
+		format(atom(Q),
+			'
+			SELECT DISTINCT
+				pc.ШифрКомпетенции, pc.Наименование
+			FROM дсСтроки as l
+			JOIN дсКомпетенцииДисциплины as cd
+				ON cd.вкСтроки = l.пк
+			JOIN дсКомпетенции as c
+				ON cd.вкКомпетенции = c.пк
+			JOIN дсКомпетенции as pc
+				ON c.вкРодителя = pc.пк
+			WHERE
+				~w
+			ORDER BY
+				pc.ШифрКомпетенции;
+			', [W]),
+		% write(Q), nl,
+		sql_connection::query(Q, row(Code1, Title1)),
+		Code=Code1, Title=Title1.
+
+	:- protected(get_where/1).
+	:- mode(get_where(-atom), one).
+	:- info(get_where/1, [
+		comment is 'Create Query WHERE constraint depending known set of the object arguments',
+		argnames is ['WhereExpression']
+	]).
+
+	get_where(Where) :-
+		::get_where(['l.ДисциплинаКод'(_Code_), 'l.Дисциплина'(_Title_)], Where).
+
+	:- protected(get_where/2).
+	:- mode(get_where(+list, -atom), one).
+	:- info(get_where/2, [
+		comment is 'Create Query WHERE constraint depending known set of the first argument',
+		argnames is ['ListOfOptions', 'WhereExpression']
+	]).
+
+	get_where([Option], 'TRUE') :-
+		Option =.. [_Name, Value],
+		var(Value), !.
+
+	get_where([Option], E) :-
+		Option =.. [Name, Value],
+		nonvar(Value), !,
+		format(atom(E), '~w = \'~w\'', [Name, Value]).
+
+	get_where([Option | T], E) :-
+		get_where([Option], E1),
+		get_where(T, E2),
+		format(atom(E), '~w AND ~w', [E1, E2]).
 
 :- end_object.

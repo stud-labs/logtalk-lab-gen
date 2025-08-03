@@ -76,6 +76,13 @@
 		argnames is ['CDAimsProblemsObject']
 	]).
 
+	:- public(cd_requirements/1).
+	:- mode(cd_requirements(-object), zero_or_one).
+	:- info(cd_requirements/1, [
+		comment is 'Defines requirements aspect for the discipline',
+		argnames is ['CDRequirimentsObject']
+	]).
+
 	% department(departement_imit).
 	company_logo('isu-logo.png', [width='1.5cm']).
 
@@ -83,6 +90,7 @@
 	approval(cd_approval).
 	cd_title_page(cd_cd_title_page(_Discipline_)).
 	cd_aims_problems(cd_aims_problems(_Discipline_)).
+	cd_requirements(cd_requirements(_Discipline_)).
 	cd_crm(crm(YAML)) :-
 		::yaml_dom(crm(YAML)).
 
@@ -188,48 +196,6 @@
 				::connect_crm
 			)
 		).
-
-:- end_object.
-
-:- object(cd_discipline(_Code_, _Title_),
-	implements(disciplinep),
-	imports(exoptions)).
-
-	:- info([
-		version is 1:0:0,
-		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
-		date is 2025-07-27,
-		comment is 'Defines discipline object connected to the databse.'
-	]).
-
-	title(Code, Title) :-
-		parameter(1, Code),
-		parameter(2, Title),
-		::get_where(['ДисциплинаКод'(Code), 'Дисциплина'(Title)], W), !,
-		format(atom(Q), 'SELECT ДисциплинаКод, Дисциплина FROM дсСтроки WHERE ~w;', [W]),
-		sql_connection::query(Q, row(Code1, Title1)),
-		Code1 = Code, Title1 = Title.
-
-	:- protected(get_where/2).
-	:- mode(get_where(+list, -atom), one).
-	:- info(get_where/2, [
-		comment is 'Create Query WHERE constraint depending known set of the first argument',
-		argnames is ['ListOfOptions', 'WhereExpression']
-	]).
-
-	get_where([Option], 'TRUE') :-
-		Option =.. [_Name, Value],
-		var(Value), !.
-
-	get_where([Option], E) :-
-		Option =.. [Name, Value],
-		nonvar(Value), !,
-		format(atom(E), '~w = \'~w\'', [Name, Value]).
-
-	get_where([Option | T], E) :-
-		get_where([Option], E1),
-		get_where(T, E2),
-		format(atom(E), '~w AND ~w', [E1, E2]).
 
 :- end_object.
 
