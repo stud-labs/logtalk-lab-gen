@@ -586,11 +586,6 @@
 			],
 			[
 				'colspec={|X[18,l]|X[36,l]|X[60,l]|}'
-				% , 'conthead-foot=empty'
-				% , 'conthead-text=empty'
-				% , 'caption-tag=empty'
-				% , 'caption-sep=empty'
-				% , 'caption-text=empty'
 				, 'width=\\linewidth'
 				, 'cell{1}{1-3} = {c,cmd=\\bfseries}'
 				, 'rowhead=1'
@@ -601,10 +596,10 @@
 		forall(Req::competence(_Type, Comp),
 			(
 				findall(Ind, Comp::indicator(Ind), Indicators),
-				length(Indicators, LI),
+				% length(Indicators, LI),
 				Indicators = [FirsI | Others],
 				T::endrow,
-				R::run('\\SetCell[r=~w]{l}', [LI]),
+				% R::run('\\SetCell[r=~w]{l}', [LI]),
 				draw_catalog_entry(Comp, T, R),
 				T::tab,
 				draw_catalog_entry(FirsI, T, R),
