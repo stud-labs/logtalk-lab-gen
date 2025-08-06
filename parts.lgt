@@ -597,19 +597,21 @@
 			(
 				findall(Ind, Comp::indicator(Ind), Indicators),
 				% length(Indicators, LI),
-				Indicators = [FirsI | Others],
+				Indicators = [FirstI | Others],
 				T::endrow,
 				% R::run('\\SetCell[r=~w]{l}', [LI]),
 				draw_catalog_entry(Comp, T, R),
 				T::tab,
-				draw_catalog_entry(FirsI, T, R),
+				draw_catalog_entry(FirstI, T, R),
 				T::tab,
+				draw_ksms(FirstI, T, R),
 				forall(member(Ind, Others),
 					(
 						T::endrow,
 						T::tab,
 						draw_catalog_entry(Ind, T, R),
-						T::tab
+						T::tab,
+						draw_ksms(Ind, T, R)
 					)
 				)
 			)
@@ -628,5 +630,14 @@
 		),
 		R::par,
 		R::run(Title).
+
+	draw_ksms(Ind, _T, R) :-
+		forall(Ind::ksa(_Key, Value),
+			(
+				R::cmd(noindent),
+				R::run(Value),
+				R::par
+			)
+		).
 
 :- end_category.

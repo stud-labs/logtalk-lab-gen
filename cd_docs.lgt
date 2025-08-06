@@ -91,7 +91,7 @@
 	cd_title_page(cd_cd_title_page(_Discipline_)).
 	cd_aims_problems(cd_aims_problems(_Discipline_)).
 	cd_requirements(cd_requirements(_Discipline_)).
-	cd_crm(crm(YAML)) :-
+	cd_crm(y_crm(YAML)) :-
 		::yaml_dom(crm(YAML)).
 
 	draw:-
@@ -179,16 +179,17 @@
 	connect_crm :-
 		global::crm(path_name(PathName)),
 		^^yaml_load(PathName, YAML),
-		retractall(yaml_dom(crm(_))),
-		assertz(yaml_dom(crm(YAML))).
+		yamls::yaml_dom(crm, YAML).
 
 	:- protected(yaml_dom/1).
-	:- dynamic(yaml_dom/1).
 	:- mode(yaml_dom(-atom), zero_or_one).
 	:- info(yaml_dom/1, [
 		comment is 'Store a YAML with a context',
 		argnames is ['YAMLAtom']
 	]).
+
+	yaml_dom(crm(YAML)) :-
+		yamls::current_yaml_dom(crm, YAML).
 
 	:- initialization(
 			(

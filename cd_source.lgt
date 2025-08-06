@@ -60,6 +60,46 @@
 
 :- end_object.
 
+:- object(yamls).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-06,
+		comment is 'Contain yaml connections reflecting an ID to a dictionary'
+	]).
+
+	:- public(yaml_dom/2).
+	:- mode(yaml_dom(+atom, +atom), one).
+	:- info(yaml_dom/2, [
+		comment is 'Add a YAML dom identifying by an id term',
+		argnames is ['ID', 'YamlDOM']
+	]).
+
+	yaml_dom(Key, Tree) :-
+		retractall(yaml(Key, _)),
+		assertz(yaml(Key, Tree)).
+
+	:- protected(yaml/2).
+	:- dynamic(yaml/2).
+	:- mode(yaml(?atom, +atom), zero_or_more).
+	:- info(yaml/2, [
+		comment is 'Database predicate for storing YAML nodes',
+		argnames is ['ID', 'Tree']
+	]).
+
+	:- public(current_yaml_dom/2).
+	:- mode(current_yaml_dom(?atom, -atom), zero_or_more).
+	:- info(current_yaml_dom/2, [
+		comment is 'Enumerates YAMLs in the database',
+		argnames is ['ID', 'Tree']
+	]).
+
+	current_yaml_dom(Key, Tree) :-
+		::yaml(Key, Tree).
+
+:- end_object.
+
 :- protocol(catalog_entryp).
 
 	:- public(code/1).
@@ -266,21 +306,32 @@
 
 	yaml_dom(_YAML_).
 
+	:- protected(type/3).
+	:- mode(type(?type, ?atom, ?string), zero_or_one).
+	:- info(type/3, [
+		comment is 'Convert type to its title',
+		argnames is ['TypeSymbol', 'AtomTitle', 'StringTitle']
+	]).
+
+	type(pk, 'ПК', "ПК").
+	type(ok, 'ОК', "ОК").
+	type(uk, 'УК', "УК").
+
 :- end_object.
 
 :- protocol(ksap).
 
-	:- public(ksa/1).
-	:- mode(ksa(?atom), zero_or_more).
-	:- info(ksa/1, [
+	:- public(ksa/2).
+	:- mode(ksa(?atom, ?atom), zero_or_more).
+	:- info(ksa/2, [
 		comment is 'Returns knowledge-skills-ability object',
-		argnames is ['KSA']
+		argnames is ['Key', 'Value']
 	]).
 
 :- end_protocol.
 
-:- object(y_indicator(_YAML_),
-	implements(ksap),
+:- object(y_indicator(_Type_, _CompIndex_, _YAML_),
+	implements([ksap, catalog_entryp]),
 	extends(yaml_object(_YAML_))).
 
 	:- info([
@@ -290,8 +341,13 @@
 		comment is 'Description'
 	]).
 
-	ksa(Expr) :-
-		Expr =.. [Key, Value], % Key(Value)
+	code(Code) :-
+		::type(_Type_, RuType, _),
+		format(atom(Code),
+			'~w-~w.~w', [RuType, _CompIndex_, 0]).
+
+	ksa(Key, Value) :-
+		% Expr =.. [Key, Value], % Key(Value)
 		::yaml(Key, Value).
 
 :- end_object.
@@ -307,8 +363,8 @@
 
 :- end_protocol.
 
-:- object(y_competence(_YAML_),
-	implements(indicatorp),
+:- object(y_competence(_Type_, _YAML_),
+	implements([indicatorp, catalog_entryp]),
 	extends(yaml_object(_YAML_))).
 
 	:- info([
@@ -320,8 +376,17 @@
 
 	:- use_module(library(lists), [member/2]).
 
-	indicator(y_indicator(Index)) :-
+	code(Code):-
+		::type(_Type_, RuType, _),
+		::yaml(code, NCode),
+		format(atom(Code), '~w-~w', [RuType, NCode]).
+
+	title(Title):-
+		::yaml(title, Title).
+
+	indicator(y_indicator(_Type_, NCode, Index)) :-
 		::yaml(indices, List),
+		::yaml(code, NCode),
 		member(Index, List).
 
 :- end_object.
@@ -350,7 +415,7 @@
 
 	:- use_module(library(lists), [member/2]).
 
-	competence(Type, y_competence(X)) :-
+	competence(Type, y_competence(Type, X)) :-
 		::yaml(Type, List),
 		member(X, List).
 
@@ -389,10 +454,48 @@
 :- end_protocol.
 
 :- object(cd_indicator(_Code_, _Title_),
-	implements([catalog_entryp])).
+	implements([catalog_entryp, ksap])).
 
 	title(_Title_).
 	code(_Code_).
+
+	ksa('knows', 'Знает, что делать.').
+
+:- end_object.
+
+:- object(y_cd_indicator(_Code_, _Title_),
+	implements([catalog_entryp, ksap])).
+
+	title(_Title_).
+	code(_Code_).
+
+	ksa(SynCode, KTitle) :-
+		yamls::current_yaml_dom(crm, CRM),
+		split(CType, RuType, CN, _IN),
+		YCRM=y_crm(CRM),
+		YCRM::competence(CType, Comp),
+		format(atom(CCode),
+			'~w-~w', [RuType, CN]),
+		Comp::code(CCode),
+		Comp::indicator(Ind),
+		% debugger::trace,
+		Ind::code(_Code_), !,
+		Ind::ksa(SynCode, KTitle),!.
+
+	:- use_module(library(pcre), [re_matchsub/3]).
+
+	split(Type, RuType, CN, IN) :-
+	   re_matchsub('([ПУО]К)-(\\d+)\\.(\\d+)', _Code_, D),
+		CNS=D.get(2),
+		number_string(CN, CNS),
+		INS=D.get(3),
+		number_string(IN, INS),
+		RuType = D.get(1),
+		type(RuType, Type).
+
+	type("ПК", pk).
+	type("ОК", ok).
+	type("УК", uk).
 
 :- end_object.
 
@@ -412,7 +515,7 @@
 
 	:- use_module(library(lists), [member/2]).
 
-	indicator(cd_indicator(Code, Title)) :-
+	indicator(y_cd_indicator(Code, Title)) :-
 		member(Code-Title, _Indicators_).
 
 :- end_object.
