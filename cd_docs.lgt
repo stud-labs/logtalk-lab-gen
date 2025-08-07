@@ -46,6 +46,7 @@
 			 , aims_problemsc
 			 , yamlc
 			 , requirementsc
+			 , displacementc
 	])).
 
 	:- info([
@@ -91,8 +92,18 @@
 	cd_title_page(cd_cd_title_page(_Discipline_)).
 	cd_aims_problems(cd_aims_problems(_Discipline_)).
 	cd_requirements(cd_requirements(_Discipline_)).
+
+	:- protected(cd_crm/1).
 	cd_crm(y_crm(YAML)) :-
-		::yaml_dom(crm(YAML)).
+		::yaml_dom(crm, YAML).
+
+	:- protected(cd_resources/1).
+	cd_resources(y_resources(YAML)) :-
+		::yaml_dom(respects, YAML).
+
+	:- protected(cd_body/1).
+	cd_body(y_body(YAML)) :-
+		::yaml_dom(body, YAML).
 
 	draw:-
 		::draw(plain,
@@ -128,6 +139,12 @@
 	draw(plain, Options) :-
 		::renderer(R),
 		^^draw_department_title(centering, Options),
+		::connect_yaml(resources, resources),
+		_Discipline_::title(Title),
+		% debugger::trace,
+		::connect_yaml(body(
+			content/disciplines/(title=Title)/file),
+			body),
 		T = tabularx(R, []),
 		::option(width(Width), Options,
 			width('\\columnwidth')),
@@ -143,6 +160,7 @@
 		R::cmd(tableofcontents),
 		R::newpage,
 		^^draw_aims_problems(plain, Options),
+		^^draw_displacement(plain, Options),
 		^^draw_requirements(plain, Options)
 		.
 
@@ -170,31 +188,33 @@
 		global::syllabus(path_name(PathName)),
 		sql_connection::connect(PathName, _Conn).
 
-	:- protected(connect_crm/0).
-	:- mode(connect_crm, zero_or_one).
-	:- info(connect_crm/0, [
-		comment is 'Connect CRM YAML data'
+	:- protected(connect_yaml/2).
+	:- mode(connect_yaml(+atom, +atom), zero_or_one).
+	:- info(connect_yaml/2, [
+		comment is 'Connect adressed YAML data',
+		argnames is ['YAMLSelector', 'StorageKey']
 	]).
 
-	connect_crm :-
-		global::crm(path_name(PathName)),
+	connect_yaml(Query, Key) :-
+		global::connect_yaml(Query,
+			path_name(PathName)),
 		^^yaml_load(PathName, YAML),
-		yamls::yaml_dom(crm, YAML).
+		yamls::yaml_dom(Key, YAML).
 
-	:- protected(yaml_dom/1).
-	:- mode(yaml_dom(-atom), zero_or_one).
-	:- info(yaml_dom/1, [
-		comment is 'Store a YAML with a context',
-		argnames is ['YAMLAtom']
+	:- protected(yaml_dom/2).
+	:- mode(yaml_dom(+atom, -atom), zero_or_one).
+	:- info(yaml_dom/2, [
+		comment is 'Get a YAML with a context',
+		argnames is ['ContextAtom', 'YAMLAtom']
 	]).
 
-	yaml_dom(crm(YAML)) :-
-		yamls::current_yaml_dom(crm, YAML).
+	yaml_dom(Key, YAML) :-
+		yamls::current_yaml_dom(Key, YAML).
 
 	:- initialization(
 			(
 				::connect_db,
-				::connect_crm
+				::connect_yaml(crm, crm)
 			)
 		).
 

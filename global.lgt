@@ -40,23 +40,48 @@
 		argnames is ['YAML', 'Query', 'Value']
 	]).
 
-	yaml_path(YAML, Expr, Result) :-
-		Expr = PathExpr/(Key=Value), !,
-		yaml_path(YAML, PathExpr, List),
+	yaml_path(List, (Key=Value), Result) :-!,
 		member(Result, List),
-		Value is Result.get(Key).
+		yaml_path(Result, Key, Value1),
+		same(Value, Value1).
 
-	yaml_path(YAML, Expr, Result) :-
-		Expr = PathExpr/[Key=Value | T], !,
-		yaml_path(YAML, PathExpr/(Key=Value), Result),
+	yaml_path(List, [Key=Value | T], Result) :-!,
+		yaml_path(List, (Key=Value), Result),
 		check_dict(Result, T).
 
-	yaml_path(YAML, PathExpr, Value) :-
-		Value = YAML.get(PathExpr).
+	yaml_path(List, (Key=Value)/Rest, Result) :-!,
+		yaml_path(List, (Key=Value), Item),
+		yaml_path(Item, Rest, Result).
+
+	yaml_path(List, [Key=Value | T]/Rest, Result) :-!,
+		yaml_path(List, (Key=Value), Item),
+		check_dict(Item, T),
+		yaml_path(Item, Rest, Result).
+
+	yaml_path(YAML, Head/Rest, Result) :-!,
+		yaml_path(YAML, Head, Item),
+		yaml_path(Item, Rest, Result).
+
+	yaml_path(YAML, Atom, Result) :-!,
+		Result = YAML.get(Atom).
+
+	same(Value, Value):-!.
+	same(String, Atom):-
+		atom(Atom),
+		string(String),!,
+		atom_string(Atom, String).
+	same(Atom, String):-
+		atom(Atom),
+		string(String),!,
+		atom_string(Atom, String).
+	same(Integer, AS):-
+		integer(Integer),
+		atom_string(AS,String),!,
+		number_string(Integer, String).
 
 	check_dict(_, []) :-!.
 	check_dict(Dict, [Key=Value | T]) :-
-		Value = Dict.get(Key),
+		yaml_path(Dict, Key, Value),
 		check_dict(Dict, T).
 
 	:- public(yaml_path/4).
@@ -169,17 +194,24 @@
 			base_config(base_dir(cwd(RelPath, Path)))
 		).
 
-	:- public(crm/1).
-	:- mode(crm(-atom), zero_or_one).
-	:- info(crm/1, [
-		comment is 'Return CRM path name, depending context',
-		argnames is ['CRMConfigData']
+	:- public(connect_yaml/2).
+	:- mode(connect_yaml(+atom, -atom), zero_or_one).
+	:- info(connect_yaml/2, [
+		comment is 'Return a path name, depending context and query',
+		argnames is ['Query', 'ConfigData']
 	]).
 
-	crm(path_name(PathName)) :-
+	connect_yaml(body(Query), path_name(PathName)) :-!,
 		::direction(path_name(D, Path)),
-		CRM = D.get(crm),
-		::at_dir(Path, CRM, PathName).
+		::yaml_path(D, content/relpath, RP),
+		::yaml_path(D, Query, FileName),
+		::at_dir(Path, RP, RPathName),
+		::at_dir(RPathName, FileName, PathName).
+
+	connect_yaml(Query, path_name(PathName)) :-
+		::direction(path_name(D, Path)),
+		::yaml_path(D, Query, FileName),
+		::at_dir(Path, FileName, PathName).
 
 	:- protected(at_base/2).
 	:- mode(at_base(+atom, ?atom), one).

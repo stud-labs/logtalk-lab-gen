@@ -558,7 +558,7 @@
 :- end_object.
 
 :- object(cd_discipline(_Code_, _Title_),
-	implements(disciplinep),
+	implements([disciplinep, catalog_entryp]),
 	imports(exoptions)).
 
 	:- info([
@@ -567,6 +567,12 @@
 		date is 2025-07-27,
 		comment is 'Defines discipline object connected to the databse.'
 	]).
+
+	title(Title) :-
+		title(_Code, Title).
+
+	code(Code) :-
+		title(Code, _Title).
 
 	title(Code, Title) :-
 		::get_where(W), !,
@@ -657,5 +663,40 @@
 		get_where([Option], E1),
 		get_where(T, E2),
 		format(atom(E), '~w AND ~w', [E1, E2]).
+
+:- end_object.
+
+:- protocol(bodyp).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-08,
+		comment is 'Describe interface of body of CD'
+	]).
+
+	:- public(annotation/1).
+	:- mode(annotation(-string), zero_or_one).
+	:- info(annotation/1, [
+		comment is 'Return annotatopn if any',
+		argnames is ['AnnotationString']
+	]).
+
+:- end_protocol.
+
+
+:- object(y_body(YAML),
+	extends(yaml_object(YAML)),
+	implements(bodyp)).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-08,
+		comment is 'View for CD body'
+	]).
+
+	annotation(Annotation) :-
+		::yaml(cd/preface/annotation, Annotation).
 
 :- end_object.

@@ -645,3 +645,34 @@
 		true.
 
 :- end_category.
+
+:- category(displacementc).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-08,
+		comment is 'Category for drawing displacements'
+	]).
+
+	:- public(draw_displacement/2).
+	:- mode(draw_displacement(+atom, +list), zero_or_one).
+	:- info(draw_displacement/2, [
+		comment is 'Draw displacenent section',
+		argnames is ['Style', 'OptionList']
+	]).
+
+	draw_displacement(plain, _Options) :-
+		::renderer(R),
+		::cd_body(Body),
+		R::section(1, 'МЕСТО ДИСЦИПЛИНЫ В СТРУКТУРЕ ОПОП ВО'),
+		R::run('Учебная дисциплина (модуль) «Основы инженерного творчества» относится к части, формируемой участниками образовательных отношений «Блок 1. Дисциплины (модули)».'),
+		R::par,
+		Body::annotation(Annotation),
+		R::run(Annotation), R::par,
+		R::run('Для изучения данной учебной дисциплины (модуля) необходимы знания, умения и навыки, формируемые предшествующими дисциплинами:'), R::par,
+		R::run('Перечень последующих учебных дисциплин, для которых необходимы знания, умения и навыки, формируемые данной учебной дисциплиной:'), R::par,
+		true.
+
+
+:- end_category.
