@@ -341,14 +341,27 @@
 		comment is 'Description'
 	]).
 
+	code(tuple(_Type_, N, M)) :- !,
+		_CompIndex_ = tuple(N, M).
+
 	code(Code) :-
 		::type(_Type_, RuType, _),
+		code(tuple(_Type_, N, M)),
 		format(atom(Code),
-			'~w-~w.~w', [RuType, _CompIndex_, 0]).
+			'~w-~w.~w', [RuType, N, M]).
+
+	:- use_module(library(lists), [member/2]).
 
 	ksa(Key, Value) :-
-		% Expr =.. [Key, Value], % Key(Value)
-		::yaml(Key, Value).
+		member(Key, ['knows','able','skill']),
+		::yaml(Key, Values),
+		enumerate(Values, Value).
+
+	enumerate(List, Value) :-
+		is_list(List), !,
+		member(Value, List).
+
+	enumerate(Value, Value).
 
 :- end_object.
 
@@ -374,20 +387,28 @@
 		comment is 'Competence of a CRM'
 	]).
 
-	:- use_module(library(lists), [member/2]).
+	:- use_module(library(lists),
+			[
+				member/2,
+				nth1/3
+			]).
+
+	code(tuple(_Type_,NCode)) :- !,
+		::yaml(code, NCode).
 
 	code(Code):-
 		::type(_Type_, RuType, _),
-		::yaml(code, NCode),
+		code(tuple(_Type_, NCode)),
 		format(atom(Code), '~w-~w', [RuType, NCode]).
 
 	title(Title):-
 		::yaml(title, Title).
 
-	indicator(y_indicator(_Type_, NCode, Index)) :-
+	indicator(y_indicator(_Type_,
+			tuple(NCode, N), Index)) :-
 		::yaml(indices, List),
 		::yaml(code, NCode),
-		member(Index, List).
+		nth1(N, List, Index).
 
 :- end_object.
 
@@ -471,16 +492,16 @@
 
 	ksa(SynCode, KTitle) :-
 		yamls::current_yaml_dom(crm, CRM),
-		split(CType, RuType, CN, _IN),
+		split(CType, _RuType, CN, IN),
 		YCRM=y_crm(CRM),
 		YCRM::competence(CType, Comp),
-		format(atom(CCode),
-			'~w-~w', [RuType, CN]),
-		Comp::code(CCode),
+		% format(atom(CCode),
+		%	'~w-~w', [RuType, CN]),
+		Comp::code(tuple(CType, CN)),
 		Comp::indicator(Ind),
+		Ind::code(tuple(CType, CN, IN)), !,
 		% debugger::trace,
-		Ind::code(_Code_), !,
-		Ind::ksa(SynCode, KTitle),!.
+		Ind::ksa(SynCode, KTitle).
 
 	:- use_module(library(pcre), [re_matchsub/3]).
 
