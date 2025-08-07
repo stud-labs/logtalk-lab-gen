@@ -596,10 +596,10 @@
 		forall(Req::competence(_Type, Comp),
 			(
 				findall(Ind, Comp::indicator(Ind), Indicators),
-				% length(Indicators, LI),
+				length(Indicators, LI),
 				Indicators = [FirstI | Others],
 				T::endrow,
-				% R::run('\\SetCell[r=~w]{l}', [LI]),
+				R::run('\\SetCell[r=~w]{l}', [LI]),
 				draw_catalog_entry(Comp, T, R),
 				T::tab,
 				draw_catalog_entry(FirstI, T, R),
@@ -632,12 +632,16 @@
 		R::run(Title).
 
 	draw_ksms(Ind, _T, R) :-
+		%R::begin(itemize),
 		forall(Ind::ksa(_Key, Value),
 			(
-				R::cmd(noindent),
+				%R::cmd(item),
+				R::run('•~~'),
 				R::run(Value),
 				R::par
 			)
-		).
+		),
+		% R::end(itemize),
+		true.
 
 :- end_category.

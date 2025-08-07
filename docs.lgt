@@ -67,12 +67,23 @@
 	file_preamble:-
 		::document_class(ClassOptions, Class),
 		::run('\\documentclass~w{~w}~n', [ClassOptions, Class]),
-		::cmd('pagestyle{empty}'),
-		forall(::require_package(Package), ::run('\\usepackage{~w}', [Package])),
-		forall(::require_package(Options, Package), ::run('\\usepackage~w{~w}', [Options, Package])),
+		::cmd('pagestyle{plain}'),
+		forall(
+			::require_package(Package),
+			(
+				Package \= none ->
+					::run('\\usepackage{~w}~n', [Package]) ; true
+			)),
+		forall(
+			::require_package(Options, Package),
+			(
+				Package \= none ->
+					::run('\\usepackage~w{~w}~n', [Options, Package]) ; true
+			)),
 		::style_config,
 		::aux_preamble,
 		::begin_document,
+		::cmd('thispagestyle{empty}'),
 		::setup_ign(after_begin_document).
 
 	:- public(document_class/2).

@@ -203,7 +203,12 @@
 :- object(cd_latex_renderer(_FileName_),
 	extends(latex_renderer(_FileName_))).
 
-	document_class(['12pt', '732'], studrep).
+	document_class(['12pt', '732'], syllabus).
+
+	% require_package([final], hyperref).
+	% require_package([protrusion=false,expansion=false],microtype).
+	% require_package([russian,english], babel).
+	require_package([], none).
 
 	setup(after_begin_document) :-
 		::cmd('renewcommand{\\baselinestretch}{1.5}').
