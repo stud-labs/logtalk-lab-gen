@@ -48,6 +48,7 @@
 			 , requirementsc
 			 , displacementc
 			 , cd_contentc
+			 , cd_final_partc
 	])).
 
 	:- info([
@@ -164,6 +165,8 @@
 		^^draw_displacement(plain, Options),
 		^^draw_requirements(plain, Options),
 		^^draw_cd_content(plain, Options),
+
+		^^draw_final_part(plain, Options),
 		true.
 
 	:- protected(draw_city/1).

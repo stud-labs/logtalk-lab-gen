@@ -748,6 +748,43 @@
 
 		true.
 
+:- end_category.
 
+
+:- protocol(final_partp).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-08,
+		comment is 'Protocol for the final part of the document'
+	]).
+
+	:- public(draw_final_part/2).
+	:- mode(draw_final_part(+atom, +list), zero_or_one).
+	:- info(draw_final_part/2, [
+		comment is 'Draw final part of the document',
+		argnames is ['Style', 'OptionList']
+	]).
+
+:- end_protocol.
+
+:- category(cd_final_partc,
+	implements(final_partp)).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-08,
+		comment is 'Category implements drawing final part according to a style_config'
+	]).
+
+	draw_final_part(plain, _Options) :-
+		::renderer(R),
+		R::newpage,
+		R::run('\\paragraph{~w}', ['Разработчики:']), R::par,
+		R::run_ln,
+		R::run('Программа составлена в соответствии с требованиями ФГОС ВО и учетом рекомендаций ПООП по направлению подготовки 01.03.02 «Прикладная математика и информатика».'),
+		R::par.
 
 :- end_category.
