@@ -770,7 +770,21 @@
 	]).
 
 	credits(total, Value) :-
-		column(number('ТрудоемкостьКредитов'), Value).
+		value(number(zet), Value).
+
+	:- public(assessment/2).
+	:- mode(assessment(+atom, -atom), zero_or_more).
+	:- info(assessment/2, [
+		comment is 'Return assessment type depending context',
+		argnames is ['ContextAtom', 'Value']
+	]).
+
+	assessment(final, 'экзамен') :-
+		value(number(exam),_),!.
+	assessment(final, 'зачет') :-
+		value(number(credit),_),!.
+	assessment(final, 'зачет с оценкой') :-
+		value(number(grade_credit),_),!.
 
 % SELECT мдrowOrder, вкООП, СчитатьБезЗЕТ, ДисциплинаКод, Оценка, РассредПрактика, ЗЕТфакт, ЧасыВарМакс, Дисциплина, Адаптационная, СкрытьВРПД, ТипОбъекта, DVnotEquals, ТрудоемкостьКредитов, пк, вкПлана, ЧасыВарАуд, ПодлежитИзучениюЧасов, Multiselect, ВидОбъекта, ТипПерезачета, ВидПрактики, NotCalcInSumKont, НестандартНедПрактики, Номер, ЧасовПоПлану, вкРодителя, ЧасовПоЗЕТ, вкКафедры, дгid, НеСчитатьКонтроль, Порядок, ЧасовВЗЕТ, ReadOnly, вкБлока, Свернуть, УровеньВложения, ПерезачтеноЧасовАуд, СчитатьВПлане, ПризнакФизкультуры, ЗаСчетПолевых FROM дсСтроки;
 
