@@ -682,6 +682,27 @@
 		argnames is ['AnnotationString']
 	]).
 
+	:- public(part/1).
+	:- mode(part(-string), zero_or_one).
+	:- info(part/1, [
+		comment is 'Return a kind of discipline, wrther it is standard or local',
+		argnames is ['String']
+	]).
+
+	:- public(requires/1).
+	:- mode(requires(-atom), zero_or_one).
+	:- info(requires/1, [
+		comment is 'Return list or item describing required disiplines',
+		argnames is ['ListOrItem']
+	]).
+
+	:- public(ensures/1).
+	:- mode(ensures(-atom), zero_or_one).
+	:- info(ensures/1, [
+		comment is 'Return list or item describing ensured disiplines',
+		argnames is ['ListOrItem']
+	]).
+
 :- end_protocol.
 
 
@@ -698,5 +719,18 @@
 
 	annotation(Annotation) :-
 		::yaml(cd/preface/annotation, Annotation).
+
+	part('формируемой участниками образовательных отношений «Блок 1. Дисциплины (модули)').
+
+	requires(Required) :-
+		displacement(Node),
+		::yaml_path(Node, requires, Required).
+
+	ensures(Ensured) :-
+		displacement(Node),
+		::yaml_path(Node, ensures, Ensured).
+
+	displacement(Node) :-
+		::yaml(cd/preface/displacemet, Node).
 
 :- end_object.

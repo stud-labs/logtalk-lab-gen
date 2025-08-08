@@ -492,7 +492,7 @@
 		::option(itemize(Environment), Options, itemize(itemize)),
 		::renderer(R),
 		R::begin(Environment),
-		itemize_list_(List, R, Options),
+		draw_list(R, List, Options),
 		R::end(Environment).
 
 	itemize_list(Atom, Options) :-
@@ -501,20 +501,29 @@
 			itemize_list([Atom], Options)
 			;
 			::renderer(R),
-			R::run(Atom),
+			draw_item(R, Atom, Options),
 			R::par
 		).
 
 	:- use_module(library(lists), [member/2]).
 
-	itemize_list_(List, Renderer, _Options) :-
+	draw_list(Renderer, List, Options) :-
 		forall(member(Item, List),
 			(
 				Renderer::cmd(item),
-				Renderer::run(' ~w', [Item]),
+				draw_item(Renderer, Item, Options),
 				Renderer::run_ln
 			)
 		).
+
+	draw_item(Renderer, Item, Options) :-
+		(
+			::option(replace(Item, Shown), Options)
+			-> true
+		 	;
+			Shown = Item
+		),
+		Renderer::run(' ~w', [Shown]).
 
 :- end_category.
 
@@ -646,7 +655,8 @@
 
 :- end_category.
 
-:- category(displacementc).
+:- category(displacementc,
+	extends(enumerationc)).
 
 	:- info([
 		version is 1:0:0,
@@ -666,12 +676,25 @@
 		::renderer(R),
 		::cd_body(Body),
 		R::section(1, 'МЕСТО ДИСЦИПЛИНЫ В СТРУКТУРЕ ОПОП ВО'),
-		R::run('Учебная дисциплина (модуль) «Основы инженерного творчества» относится к части, формируемой участниками образовательных отношений «Блок 1. Дисциплины (модули)».'),
+		::discipline(Discilpine),
+		Discilpine::title(DTitle),
+		Body::part(BPart),
+%		R::run('Учебная дисциплина (модуль) «Основы инженерного творчества» относится к части, формируемой участниками образовательных отношений «Блок 1. Дисциплины (модули)».'),
+		R::run('Учебная дисциплина (модуль) «~w» относится к части, ~w».', [DTitle, BPart]),
 		R::par,
 		Body::annotation(Annotation),
 		R::run(Annotation), R::par,
 		R::run('Для изучения данной учебной дисциплины (модуля) необходимы знания, умения и навыки, формируемые предшествующими дисциплинами:'), R::par,
+		Body::requires(Required),
+		ItemizeOptions = [
+			itemize(itemize),
+			single_as_list,
+			replace("none", 'нет')
+		],
+		^^itemize_list(Required, ItemizeOptions),
 		R::run('Перечень последующих учебных дисциплин, для которых необходимы знания, умения и навыки, формируемые данной учебной дисциплиной:'), R::par,
+		Body::ensures(Ensured),
+		^^itemize_list(Ensured, ItemizeOptions),
 		true.
 
 

@@ -218,6 +218,15 @@
 			)
 		).
 
+	:- public(discipline/1).
+	:- mode(discipline(-object), one).
+	:- info(discipline/1, [
+		comment is 'Returns Discipline object',
+		argnames is ['DisciplineObject']
+	]).
+
+	discipline(_Discipline_).
+
 :- end_object.
 
 :- object(cd_latex_renderer(_FileName_),
