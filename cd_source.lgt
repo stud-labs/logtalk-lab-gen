@@ -862,6 +862,13 @@
 		argnames is ['ListOrItem']
 	]).
 
+	:- public(pw_technique/1).
+	:- mode(pw_technique(-atom), zero_or_one).
+	:- info(pw_technique/1, [
+		comment is 'Return text of technique description',
+		argnames is ['Text']
+	]).
+
 :- end_protocol.
 
 
@@ -891,5 +898,24 @@
 
 	displacement(Node) :-
 		::yaml(cd/preface/displacemet, Node).
+
+:- end_object.
+
+
+:- object(y_resources(_YAML_),
+	extends(yaml_object(_YAML_)),
+	implements(bodyp)).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-08,
+		comment is 'Defines common resources for CDs'
+	]).
+
+	pw_technique(Text) :-
+		::yaml(
+			cd/pw/educationtech/
+			handbook/content, Text), a.
 
 :- end_object.

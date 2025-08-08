@@ -62,8 +62,15 @@
 		yaml_path(YAML, Head, Item),
 		yaml_path(Item, Rest, Result).
 
-	yaml_path(YAML, Atom, Result) :-!,
-		Result = YAML.get(Atom).
+	yaml_path(YAML, Atom, Result) :- !,
+		(
+			Result = YAML.get(Atom)
+			->
+			true
+			;
+			format('WARNING: cannot find key \'~w\'~n', [Atom]),
+			fail
+		).
 
 	same(Value, Value):-!.
 	same(String, Atom):-
