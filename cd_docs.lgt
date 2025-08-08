@@ -47,6 +47,7 @@
 			 , yamlc
 			 , requirementsc
 			 , displacementc
+			 , cd_contentc
 	])).
 
 	:- info([
@@ -161,8 +162,9 @@
 		R::newpage,
 		^^draw_aims_problems(plain, Options),
 		^^draw_displacement(plain, Options),
-		^^draw_requirements(plain, Options)
-		.
+		^^draw_requirements(plain, Options),
+		^^draw_cd_content(plain, Options),
+		true.
 
 	:- protected(draw_city/1).
 	:- mode(draw_city(+list), one).

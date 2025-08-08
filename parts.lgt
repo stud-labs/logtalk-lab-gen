@@ -198,8 +198,8 @@
 			(
 				call(GoalBefore),
 				(D == none ->
-					(R::run('"~~'), R::underscore_fill('5mm'),
-					 R::run('~~"~~'), R::cmd(hrulefill),
+					(R::run('<<~~'), R::underscore_fill('5mm'),
+					 R::run('~~>>~~'), R::cmd(hrulefill),
 					 R::run('~~'),
 					 R::run('~w', [Y]),
 					 R::run('~~'),
@@ -696,6 +696,41 @@
 		Body::ensures(Ensured),
 		^^itemize_list(Ensured, ItemizeOptions),
 		true.
+
+:- end_category.
+
+:- category(cd_contentc,
+	extends(enumerationc)).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-08,
+		comment is 'Category for drawing the content of the discipline'
+	]).
+
+	:- public(draw_cd_content/2).
+	:- mode(draw_cd_content(+atom, +list), zero_or_one).
+	:- info(draw_cd_content/2, [
+		comment is 'Draws the main CD part of the content',
+		argnames is ['Style', 'OptionList']
+	]).
+
+	draw_cd_content(plain, _Options) :-
+		::renderer(R),
+		R::section(1, 'СОДЕРЖАНИЕ И СТРУКТУРА ДИСЦИПЛИНЫ'),
+		::discipline(D),
+		D::hours(total, HTotal),
+		D::hours(control, CtrlTotal),
+		D::hours(pw, PWTotal),
+		D::credits(total, CTotal),
+		R::run('Трудоемкость дисциплины составляет ~w зачетных единицы, ~w часов, в том числе ~w часов на контроль.',
+		[CTotal, HTotal, CtrlTotal]),
+		R::par,
+		R::run('Из них реализуется с использованием электронного обучения и дистанционных образо вательных технологий ~w часа самостоятельной работы.', [PWTotal]),
+		R::par,
+		R::run('Форма промежуточной аттестации: ~w.', [none]),
+		R::section(2,'Содержание дисциплины, структурированное по темам, c указанием видов учебных занятий и СРС, отведенного на них количества академических часов').
 
 
 :- end_category.

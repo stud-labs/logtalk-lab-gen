@@ -633,6 +633,151 @@
 		sql_connection::query(Q, row(Code1, Title1)),
 		Code=Code1, Title=Title1.
 
+	:- protected(column/2).
+	:- mode(column(+symbol, -symbol), zero_or_one).
+	:- info(column/2, [
+		comment is 'Query and return various data on the discipline',
+		argnames is ['FieldName', 'FieldValue']
+	]).
+
+	column(number(Name), Value) :-!,
+		column(Name, StringValue),
+		(
+			number(StringValue)
+			->
+			Value=StringValue
+			;
+			number_string(Value, StringValue)
+		).
+
+	column(Name, Value) :-
+		::get_where(W), !,
+		format(atom(Q),
+			'
+			SELECT DISTINCT
+				l.~w
+			FROM дсСтроки as l
+			WHERE
+				~w ;
+			', [Name, W]),
+		sql_connection::query(Q, row(Value1)),
+		Value=Value1.
+
+	:- protected(cd_value/2).
+	:- mode(cd_value(+atom, -number), zero_or_more).
+	:- info(cd_value/2, [
+		comment is 'Return value from main data table',
+		argnames is ['FieldName', 'FieldValue']
+	]).
+
+	value(number(Name), Value) :-!,
+		value(Name, StringValue),
+		(
+			number(StringValue)
+			->
+			Value=StringValue
+			;
+			number_string(Value, StringValue)
+		).
+
+	value(Name, Value) :-
+		(
+			v_convert(Name, FieldName) -> true
+			;
+			FieldName=Name
+		),
+		::get_where(W), !,
+		format(atom(Q),
+			'
+			SELECT DISTINCT
+				v.Количество
+			FROM дсСтроки as l
+			JOIN дсНовыеЧасы as v ON v.вкОбъекта = l.пк
+			JOIN дсВидыРабот as w ON v.вкВидаРаботы = w.пк
+			WHERE
+				~w AND
+				w.Аббревиатура=\'~w\';
+			', [W, FieldName]),
+		sql_connection::query(Q, row(Value1)),
+		Value=Value1.
+
+	v_convert(total, 'Итого').
+	v_convert(exam, 'Эк').
+	v_convert(credit, 'За').
+	v_convert(grade_credit, 'ЗаО').
+	v_convert(vkr, 'ВКР').
+	v_convert(course_work, 'КР').
+	v_convert(control_work, 'К').
+	v_convert(home_control_work, 'ДКР').
+	v_convert(grade, 'Оц').
+	v_convert(essay, 'Эс').
+% Реф
+% РГР
+% Др
+	v_convert(zet, 'ЗЕТ').
+% Нед
+% Руководство
+% Рецензирование
+% Внешнее рецензирование
+% Консультации
+% Председатель
+% Член комиссии
+% Секретарь
+% Лекции
+% Нормоконтроль
+% Дежурство
+	v_convert(lection, 'Лек').
+	v_convert(labwork, 'Лаб').
+	v_convert(practice, 'Пр').
+	v_convert(seminary, 'Сем').
+% ИЗ
+% КСР
+	v_convert(pw, 'СР').
+	v_convert(control, 'КО').
+% ГУ
+% ГЗ
+% ТЗ
+% КШУ
+% КоР
+% КРП
+% СРП
+% Кл
+% Мет
+% ВИБ
+% Конф
+% МГЗ
+% ИП
+% Конс
+% Ауд
+% КО
+% Переатт
+
+	:- public(hours/2).
+	:- mode(hours(+atom, -number), zero_or_more).
+	:- info(hours/2, [
+		comment is 'Returns various hour data',
+		argnames is ['ParameterName', 'NumericValue']
+	]).
+
+	hours(Atom, Value) :-
+		value(Atom, Value).
+
+	:- public(credits/2).
+	:- mode(credits(+atom, -number), zero_or_more).
+	:- info(credits/2, [
+		comment is 'Return credit data',
+		argnames is ['ParameterName', 'NumericValue']
+	]).
+
+	credits(total, Value) :-
+		column(number('ТрудоемкостьКредитов'), Value).
+
+% SELECT мдrowOrder, вкООП, СчитатьБезЗЕТ, ДисциплинаКод, Оценка, РассредПрактика, ЗЕТфакт, ЧасыВарМакс, Дисциплина, Адаптационная, СкрытьВРПД, ТипОбъекта, DVnotEquals, ТрудоемкостьКредитов, пк, вкПлана, ЧасыВарАуд, ПодлежитИзучениюЧасов, Multiselect, ВидОбъекта, ТипПерезачета, ВидПрактики, NotCalcInSumKont, НестандартНедПрактики, Номер, ЧасовПоПлану, вкРодителя, ЧасовПоЗЕТ, вкКафедры, дгid, НеСчитатьКонтроль, Порядок, ЧасовВЗЕТ, ReadOnly, вкБлока, Свернуть, УровеньВложения, ПерезачтеноЧасовАуд, СчитатьВПлане, ПризнакФизкультуры, ЗаСчетПолевых FROM дсСтроки;
+
+% SELECT Курс, мдrowOrder, Недель, дгid, ТипКомиссии, *вкВидаРаботы*, *вкОбъекта*, Дней, Количество, Семестр, вкТипаЧасов, Переаттестовано, пк, Сессия FROM дсНовыеЧасы;
+
+% SELECT мдrowOrder, *Аббревиатура*, дгid, Аудиторный, вкТипРабот, HasPrPreparing, HasInter, Отображать, Назначение, Контактный, *пк*, HasDistr, *Название* FROM дсВидыРабот;
+
 	:- protected(get_where/1).
 	:- mode(get_where(-atom), one).
 	:- info(get_where/1, [
