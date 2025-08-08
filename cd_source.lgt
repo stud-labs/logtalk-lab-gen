@@ -915,7 +915,7 @@
 
 	pw_technique(Text) :-
 		::yaml(
-			cd/pw/educationtech/
-			handbook/content, Text), a.
+			cd/pw/
+			handbook/content, Text).
 
 :- end_object.

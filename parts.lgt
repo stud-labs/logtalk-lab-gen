@@ -735,7 +735,6 @@
 
 		::cd_body(Body),
 		::cd_resources(Res),
-		d,
 		R::section(2, 'Методические указания по организации самостоятельной работы студентов'),
 		(
 			Body::pw_technique(Text)

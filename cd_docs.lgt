@@ -100,7 +100,7 @@
 
 	:- protected(cd_resources/1).
 	cd_resources(y_resources(YAML)) :-
-		::yaml_dom(respects, YAML).
+		::yaml_dom(resources, YAML).
 
 	:- protected(cd_body/1).
 	cd_body(y_body(YAML)) :-

@@ -68,7 +68,7 @@
 			->
 			true
 			;
-			format('WARNING: cannot find key \'~w\'~n', [Atom]),
+			% format('WARNING: cannot find key \'~w\' in~n~w~n', [Atom, YAML]),
 			fail
 		).
 
