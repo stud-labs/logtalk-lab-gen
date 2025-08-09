@@ -620,6 +620,21 @@
 	tab :-
 		 _Renderer_::run(" & ").
 
+	:- public(tab/1).
+	:- mode(tab(+integer), one).
+	:- info(tab/1, [
+		comment is 'Draws a number of tabs',
+		argnames is ['Number']
+	]).
+
+	tab(1) :-
+		::tab.
+	tab(N) :-
+		N > 1,
+		tab(1),
+		N1 is N-1,
+		tab(N1).
+
 	:- public(end/0).
 	:- mode(end, one).
 	:- info(end/0, [
@@ -682,6 +697,56 @@
 		^^cond_hline.
 
 	env_name(tblr).
+
+	:- public(set_cell/2).
+	:- mode(set_cell(+list, +list), one).
+	:- info(set_cell/2, [
+		comment is 'Constructs Setcell[]{} structure',
+		argnames is ['AuxiliaryOptions', 'MandatoryOptions']
+	]).
+
+	set_cell(AOptions, MOptions) :-
+		R = _Renderer_,
+		R::run('\\SetCell['),
+		forall(member(O, AOptions),
+			(::draw_option(O), R::run(','))),
+		R::run(']{'),
+		forall(member(O, MOptions),
+			(::draw_option(O), R::run(','))),
+		R::run('}').
+
+	:- protected(draw_option/1).
+	:- mode(draw_option(+atom), one).
+	:- info(draw_option/1, [
+		comment is 'Option'
+	]).
+
+	draw_option(cmd=Cmd) :-!,
+		_Renderer_::run('cmd=\\~w', [Cmd]).
+	draw_option(A=B) :-!,
+		_Renderer_::run('~w=~w', [A,B]).
+	draw_option(O) :-
+		_Renderer_::run(O).
+
+	:- public(rotatebox/2).
+	:- mode(rotatebox(+integer, +goal), one).
+	:- info(rotatebox/2, [
+		comment is 'Draw text rotated',
+		argnames is ['Degrees', 'Goal']
+	]).
+
+	:- meta_predicate(rotatebox(*,0)).
+
+	rotatebox(Degree, String) :-
+		String = run(Run), !,
+		R = _Renderer_,
+		R::run('\\rotatebox{~w}{~w}', [Degree, Run]).
+
+	rotatebox(Degree, Goal) :-
+		R = _Renderer_,
+		R::run('\\rotatebox{~w}{', [Degree]),
+		call(Goal),
+		R::run('}').
 
 :- end_object.
 

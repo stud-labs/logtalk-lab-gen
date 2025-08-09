@@ -588,7 +588,7 @@
 		R::begin(center),
 		R::boldface(R::run('Перечень планируемых результатов обучения по дисциплине (модулю), соотнесенных с индикаторами достижения компетенций')),
 		R::end(center),
-		T=longtblr(R, [hline(_), Options]),
+		T = longtblr(R, [hline(_) | Options]),
 		T::begin(
 			[
 				'caption=empty'
@@ -699,8 +699,83 @@
 
 :- end_category.
 
+:- category(content_hour_tablec,
+	extends(exoptions)).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-09,
+		comment is 'Draws content and hour distributiontable'
+	]).
+
+	:- public(draw_content_hour_table/2).
+	:- mode(draw_content_hour_table(+atom, +list), zero_or_one).
+	:- info(draw_content_hour_table/2, [
+		comment is 'Draws conmtent hour table',
+		argnames is ['Style', 'OptionList']
+	]).
+
+	draw_content_hour_table(plain, Options) :-
+		::renderer(R),
+		::cd_body(_B),
+		::discipline(D),
+		T = longtblr(R, [hline(_) | Options]),
+		T::begin(
+			[
+				'caption=empty'
+			],
+			[
+				  'colspec={|X[1,c]|X[9,l]|X[1,c]|X[1,c]|X[1,c]|X[1,c]|X[1,c]|X[1,c]|}'
+				, 'width=\\linewidth'
+				, 'cell{1}{1-8} = {c,cmd=\\bfseries}'
+				, 'rowhead=1'
+			]),
+		T::set_cell([r=3,c=1],[c,m,cmd=bfseries]),
+		R::run('№'), T::tab,
+		T::set_cell([r=3],[c,cmd=bfseries]),
+		R::run('Раздел дисциплины/темы'), T::tab,
+		T::set_cell([r=3],[c,cmd=bfseries]),
+		T::rotatebox(90, R::run('Семестр')),
+		T::tab,
+		T::set_cell([c=4],[c,cmd=bfseries]),
+		R::run('Виды учебной работы'),
+		%R::run('Виды учебной работы, включая'), R::par,
+		%R::run('самостоятельную работу'), R::par,
+		%R::run('обучающихся и трудоемкость'), R::par,
+		%R::run('(в часах)'),
+		T::tab(4),
+		T::set_cell([r=3,c=1],[c,cmd=bfseries]),
+		T::rotatebox(90, run('Контр. успев./сем.')),
+		% R::run('Формы текущего контроля успеваемости; Форма промежуточной аттестации (по семестрам)'),
+		T::endrow,
+		T::tab(3),
+		T::set_cell([c=3],[c,cmd=bfseries]),
+		R::run('Контактная работа'),
+		%R::run('Контактная работа'), R::par,
+		%R::run('преподавателя'), R::par,
+		%R::run('с обучающимися'),
+		T::tab(3),
+		T::set_cell([r=2,c=1],[c, cmd=bfseries]),
+		T::rotatebox(90, R::run('Сам. работа')),
+		% R::run('СР'), % Самостоятельная работа
+		T::tab,
+		T::endrow,
+		T::tab(3),
+		T::rotatebox(90, run('Лекции')), T::tab,
+		T::rotatebox(90, run('Сем./пр.')), T::tab,
+		% R::run('Семинарские (практические) занятия'), T::tab,
+		T::rotatebox(90, run('Консульт.')),
+		T::tab(2),
+		T::endrow,
+		T::end,
+		D::hours(total, _HTotal).
+
+:- end_category.
+
+
 :- category(cd_contentc,
-	extends(enumerationc)).
+	extends([enumerationc, content_hour_tablec])).
 
 	:- info([
 		version is 1:0:0,
@@ -716,7 +791,7 @@
 		argnames is ['Style', 'OptionList']
 	]).
 
-	draw_cd_content(plain, _Options) :-
+	draw_cd_content(plain, Options) :-
 		::renderer(R),
 		R::section(1, 'СОДЕРЖАНИЕ И СТРУКТУРА ДИСЦИПЛИНЫ'),
 		::discipline(D),
@@ -732,7 +807,7 @@
 		R::par,
 		R::run('Форма промежуточной аттестации: ~w.', [Assessment]),
 		R::section(2,'Содержание дисциплины, структурированное по темам, c указанием видов учебных занятий и СРС, отведенного на них количества академических часов'),
-
+		^^draw_content_hour_table(plain, Options),
 		::cd_body(Body),
 		::cd_resources(Res),
 		R::section(2, 'Методические указания по организации самостоятельной работы студентов'),

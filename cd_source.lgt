@@ -752,6 +752,22 @@
 % КО
 % Переатт
 
+	:- public(hour_class/2).
+	:- mode(hour_class(?atom, ?atom), zero_or_more).
+	:- info(hour_class/2, [
+		comment is 'Classes of hours definition',
+		argnames is ['Class', 'HourAtom']
+	]).
+
+	hour_class(contact, labwork).
+	hour_class(contact, lection).
+	hour_class(contact, practice).
+	hour_class(contact, seminary).
+	hour_class(personal, pw).
+	hour_class(assessment, exam).
+	hour_class(assessment, credit).
+	hour_class(assessment, grade_credit).
+
 	:- public(hours/2).
 	:- mode(hours(+atom, -number), zero_or_more).
 	:- info(hours/2, [
