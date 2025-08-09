@@ -597,7 +597,7 @@
 				  'colspec={X[1,l]X[4,l]}'
 				, 'width=\\linewidth'
 				, hlines, vlines
-				, 'cell{1}{1-2} = {c,cmd=\\bfseries}'
+				, 'cell{1}{1-2} = {c,cmd=\\bfseries, bg=gray}'
 				, 'cell{2}{1-2} = {c,cmd=\\bfseries}'
 				, 'rowhead=2'
 			]),
@@ -610,9 +610,9 @@
 			(
 				findall(Ind, Comp::indicator(Ind), Indicators),
 				T::endrow,
-				T::set_cell([c=2],[l]),
+				T::set_cell([c=2],[l,wd='\\columnwidth', bg=gray]),
 				% T::set_cell([c=2],[l,w='\\linewidth']),
-				draw_catalog_entry(Comp, T, R),
+				draw_catalog_entry(hor(Comp), T, R),
 				T::tab,
 				forall(member(Ind, Indicators),
 					(
@@ -627,6 +627,17 @@
 		T::end.
 % https://mirror.funkfreundelandshut.de/latex/macros/latex/contrib/tabularray/tabularray.pdf
 
+	draw_catalog_entry(hor(Entry), _T, R) :-
+		Entry::code(Code),
+		Entry::title(Title),
+		R::boldface(
+			(
+				R::cmd(noindent),
+				R::run(Code)
+			)
+		),
+		R::run('~~--~~'),
+		R::run(Title).
 	draw_catalog_entry(Entry, _T, R) :-
 		Entry::code(Code),
 		Entry::title(Title),
