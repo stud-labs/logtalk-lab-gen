@@ -588,14 +588,15 @@
 		R::begin(center),
 		R::boldface(R::run('Перечень планируемых результатов обучения по дисциплине (модулю), соотнесенных с индикаторами достижения компетенций')),
 		R::end(center),
-		T = longtblr(R, [hline(_) | Options]),
+		T = longtblr(R, Options),
 		T::begin(
 			[
 				'caption=empty'
 			],
 			[
-				'colspec={|X[18,l]|X[36,l]|X[60,l]|}'
+				  'colspec={X[18,l]X[36,l]X[60,l]}'
 				, 'width=\\linewidth'
+				, hlines, vlines
 				, 'cell{1}{1-3} = {c,cmd=\\bfseries}'
 				, 'rowhead=1'
 			]),
@@ -608,7 +609,7 @@
 				length(Indicators, LI),
 				Indicators = [FirstI | Others],
 				T::endrow,
-				R::run('\\SetCell[r=~w]{l}', [LI]),
+				T::set_cell([r=LI],[h]),
 				draw_catalog_entry(Comp, T, R),
 				T::tab,
 				draw_catalog_entry(FirstI, T, R),
@@ -720,13 +721,14 @@
 		::renderer(R),
 		::cd_body(_B),
 		::discipline(D),
-		T = longtblr(R, [hline(_) | Options]),
+		T = longtblr(R, Options),
 		T::begin(
 			[
 				'caption=empty'
 			],
 			[
-				  'colspec={|X[1,c]|X[9,l]|X[1,c]|X[1,c]|X[1,c]|X[1,c]|X[1,c]|X[1,c]|}'
+				  'colspec={Q[c]Q[l] *{6}{X[c]}}'
+				, vlines, hlines
 				, 'width=\\linewidth'
 				, 'cell{1}{1-8} = {c,cmd=\\bfseries}'
 				, 'rowhead=1'
