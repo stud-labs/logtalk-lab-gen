@@ -594,31 +594,29 @@
 				'caption=empty'
 			],
 			[
-				  'colspec={X[18,l]X[36,l]X[60,l]}'
+				  'colspec={X[1,l]X[4,l]}'
 				, 'width=\\linewidth'
 				, hlines, vlines
-				, 'cell{1}{1-3} = {c,cmd=\\bfseries}'
-				, 'rowhead=1'
+				, 'cell{1}{1-2} = {c,cmd=\\bfseries}'
+				, 'cell{2}{1-2} = {c,cmd=\\bfseries}'
+				, 'rowhead=2'
 			]),
+		T::set_cell([c=2],[c,cmd=bfseries]),
 		R::run('Компетенция'), T::tab,
-		R::run('Индикаторы компетенций'), T::tab,
+		T::endrow,
+		R::run('Индикаторы'), T::tab,
 		R::run('Результаты обучения'),
 		forall(Req::competence(_Type, Comp),
 			(
 				findall(Ind, Comp::indicator(Ind), Indicators),
-				length(Indicators, LI),
-				Indicators = [FirstI | Others],
 				T::endrow,
-				T::set_cell([r=LI],[h]),
+				T::set_cell([c=2],[l]),
+				% T::set_cell([c=2],[l,w='\\linewidth']),
 				draw_catalog_entry(Comp, T, R),
 				T::tab,
-				draw_catalog_entry(FirstI, T, R),
-				T::tab,
-				draw_ksms(FirstI, T, R),
-				forall(member(Ind, Others),
+				forall(member(Ind, Indicators),
 					(
 						T::endrow,
-						T::tab,
 						draw_catalog_entry(Ind, T, R),
 						T::tab,
 						draw_ksms(Ind, T, R)
