@@ -986,6 +986,14 @@
 							'ControlHours']
 	]).
 
+	:- public(header_structure/1).
+	:- mode(header_structure(-compound), zero_or_one).
+	:- info(header_structure/1, [
+		comment is 'Deduce the table header structure',
+		argnames is ['TableHeaderStructure']
+	]).
+
+
 :- end_protocol.
 
 
@@ -1035,5 +1043,24 @@
 		Body::yaml_path(Topic, Key, Work),
 		y_activity(Work)::hours(Value), !.
 	qh(_, _, _, Default, Default).
+
+	header_structure(
+		[
+			semester(1),
+			education(
+				[
+					contact(
+						[
+							lection(0),
+							practice(36),
+							consult(0)
+						]),
+					pw(64)
+				]),
+			control(
+				[
+					credit(64)
+				])
+		]).
 
 :- end_object.

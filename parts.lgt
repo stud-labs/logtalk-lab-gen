@@ -730,47 +730,72 @@
 		::renderer(R),
 		::cd_body(Body),
 		::discipline(D),
+		HT = y_hour_table(Body, D),
+		% figure out main table parameters
+		HT::header_structure(HS),
+		rec_length(HS, HSL),
+		header_height(HS,HSH),
 		T = longtblr(R, Options),
+		format(atom(ColSpec),
+			'colspec={X[1,c,m]X[7,l] *{~w}{X[1,c,m]}}',
+			[HSL]),
+		HSLA is HSL + 2,
+		format(atom(CellsSpec),
+			'cell{1}{1-~w} = {c,cmd=\\bfseries}',
+			[HSLA]),
+		format(atom(RowHead),
+			'rowhead=~w',
+			[HSH]),
 		T::begin(
 			[
 				'caption=empty'
 			],
 			[
-				%  'colspec={Q[c]Q[l] *{6}{X[c]}}'
-				  'colspec={X[1,c,m]X[7,l] *{6}{X[1,c,m]}}'
+				  ColSpec
 				, vlines, hlines
 				, 'width=\\linewidth'
-				, 'cell{1}{1-8} = {c,cmd=\\bfseries}'
-				, 'rowhead=3'
+				, CellsSpec
+				, RowHead
 			]),
-		T::set_cell([r=3,c=1],[c,m,cmd=bfseries]),
+		T::set_cell([r=HSH,c=1],[c,m,cmd=bfseries]),
 		R::run('№'), T::tab,
-		T::set_cell([r=3],[c,cmd=bfseries]),
+		T::set_cell([r=HSH],[c,cmd=bfseries]),
 		R::run('Раздел дисциплины/темы'), T::tab,
-		T::set_cell([r=3],[c,cmd=bfseries]),
+		T::set_cell([r=HSH],[c,cmd=bfseries]),
 		T::rotatebox(90, R::run('Семестр')),
 		T::tab,
-		T::set_cell([c=4],[c,cmd=bfseries]),
+		::option(education(ED), HS),
+		rec_length(ED, EDL),
+		T::set_cell([c=EDL],[c,cmd=bfseries]),
 		R::run('Виды учебной работы'),
 		%R::run('Виды учебной работы, включая'), R::par,
 		%R::run('самостоятельную работу'), R::par,
 		%R::run('обучающихся и трудоемкость'), R::par,
 		%R::run('(в часах)'),
-		T::tab(4),
-		T::set_cell([r=3,c=1],[c,cmd=bfseries]),
+		T::tab(EDL),
+		T::set_cell([r=HSH,c=1],[c,cmd=bfseries]),
 		T::rotatebox(90, run('Контр. успев./сем.')),
 		% R::run('Формы текущего контроля успеваемости; Форма промежуточной аттестации (по семестрам)'),
 		T::endrow,
 		T::tab(3),
-		T::set_cell([c=3],[c,cmd=bfseries]),
+		::option(contact(CD), ED),
+		rec_length(CD, CDL),
+		T::set_cell([c=CDL],[c,cmd=bfseries]),
 		R::run('Контактная работа'),
 		%R::run('Контактная работа'), R::par,
 		%R::run('преподавателя'), R::par,
 		%R::run('с обучающимися'),
-		T::tab(3),
-		T::set_cell([r=2,c=1],[c, cmd=bfseries]),
-		T::rotatebox(90, R::run('Сам. работа')),
-		% R::run('СР'), % Самостоятельная работа
+		T::tab(CDL),
+		(
+			::option(pw(_), ED)
+			->
+			HSHM1 is HSH - 1,
+			T::set_cell([r=HSHM1,c=1],[c, cmd=bfseries]),
+			T::rotatebox(90, R::run('Сам. работа')) % TODO
+			% R::run('СР'), % Самостоятельная работа
+			;
+			true
+		),
 		T::tab,
 		T::endrow,
 		T::tab(3),
@@ -779,7 +804,6 @@
 		% R::run('Семинарские (практические) занятия'), T::tab,
 		T::rotatebox(90, run('Консульт.')),
 		T::tab(2),
-		HT = y_hour_table(Body, D),
 		forall(HT::section(1-Node, SectionName, Semester,
 					[Lec, Pr, Con], PW, Contr),
 					(
@@ -814,6 +838,21 @@
 				),
 		T::end,
 		D::hours(total, _HTotal).
+
+		rec_length([], 0) .
+		rec_length([Def| T], LL) :-
+			Def =.. [_, Args], !,
+			rec_length(Args, L),
+			rec_length(T, LT),
+			LL is L + LT.
+		rec_length(_, 1).
+
+		header_height([X | T], H) :-
+			X =.. [_ | [Args]], !,
+			header_height(Args, HA),
+			header_height(T, HT),
+			H is max(HA+1, HT).
+		header_height(_, 0).
 
 :- end_category.
 
