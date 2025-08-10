@@ -971,13 +971,20 @@
 
 	:- use_module(library(lists), [member/2]).
 
-	section(1-Topic, Title, 1, [2,2,2], 3, 4) :-
+	section(1-Topic, Title, 1, [Le,Se,Co], Pw, 0) :-
 		B = _Body_,
 		B::yaml(cd/content, Topics), !,
 		member(Topic, Topics),
-		B::yaml_path(Topic, title, Title).
+		B::yaml_path(Topic, title, Title),
+		(
+			B::yaml_path(Topic, hours, [Le, Se, Co, Pw])
+		->
+			true
+			;
+			[Le, Se, Co, Pw] = ['-', '-', '-', '-']
+		).
 
-	section(2-Topic, Title, 1, [2,2,2], 3, 4) :-
+	section(2-Topic, Title, 1, [Le,Se,Co], Pw, 0) :-
 		B = _Body_,
 		B::yaml_path(Topic, content, Topics), !,
 		member(T, Topics),
@@ -987,6 +994,15 @@
 			Title = T
 			;
 			B::yaml_path(T, title, Title)
-		).
+		),
+		qh(B, T, pw, Pw, '-'),
+		qh(B, T, preface, Se, 0),
+		qh(B, T, lection, Le, 0),
+		qh(B, T, consult, Co, 0),
+		true.
 
+	qh(Body, Topic, Key, Value, _Default) :-
+		Body::yaml_path(Topic, Key, Work),
+		Body::yaml_path(Work, hours, Value),!.
+	qh(_, _, _, Default, Default).
 :- end_object.
