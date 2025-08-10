@@ -936,7 +936,7 @@
 
 :- end_object.
 
-:- protocol(workp).
+:- protocol(activityp).
 
 	:- info([
 		version is 1:0:0,
@@ -975,8 +975,8 @@
 
 :- end_protocol.
 
-:- object(y_work(_YAML_),
-	implements([catalog_entryp, workp]),
+:- object(y_activity(_YAML_),
+	implements([catalog_entryp, activityp]),
 	extends(yaml_object(_YAML_))).
 
 	:- info([
@@ -1085,7 +1085,7 @@
 
 	qh(Body, Topic, Key, Value, _Default) :-
 		Body::yaml_path(Topic, Key, Work),
-		y_work(Work)::hours(Value), !.
+		y_activity(Work)::hours(Value), !.
 	qh(_, _, _, Default, Default).
 
 :- end_object.
