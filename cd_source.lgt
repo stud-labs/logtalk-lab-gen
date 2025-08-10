@@ -936,6 +936,88 @@
 
 :- end_object.
 
+:- protocol(workp).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-10,
+		comment is 'Protocol describing work done during education'
+	]).
+
+	:- public(hours/1).
+	:- mode(hours(-number), one).
+	:- info(hours/1, [
+		comment is 'Hours spent to this work',
+		argnames is ['NumberOfHours']
+	]).
+
+	:- public(part/1).
+	:- mode(part(-atom), zero_or_more).
+	:- info(part/1, [
+		comment is 'Work part can / to be done',
+		argnames is ['WorkTitle']
+	]).
+
+	:- public(competence/1).
+	:- mode(competence(-atom), zero_or_more).
+	:- info(competence/1, [
+		comment is 'Competence related to the work',
+		argnames is ['Competence']
+	]).
+
+	:- public(test/1).
+	:- mode(test(-atom), zero_or_more).
+	:- info(test/1, [
+		comment is 'Describe test, which indicates competence ',
+		argnames is ['Test']
+	]).
+
+:- end_protocol.
+
+:- object(y_work(_YAML_),
+	implements([catalog_entryp, workp]),
+	extends(yaml_object(_YAML_))).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-10,
+		comment is 'Represents a work (practice, personal, laboratory)'
+	]).
+
+	:- use_module(library(lists), [member/2]).
+
+	competence(code(Code)) :-
+		::yaml(competence, List),
+		member(Code, List).
+
+	test(Test) :-
+		::yaml(test, Test).
+
+	part(Part) :-
+		member(Key, [work, parts]),
+		::yaml(Key, Work),
+		(
+			is_list(Work)
+			->
+			member(Part, Work)
+			;
+			Part = Work
+		).
+
+	hours(Hours) :-
+		::yaml(hours, String),
+		(
+			number(String)
+			->
+			String = Hours
+			;
+			number_string(Hours, String)
+		).
+
+:- end_object.
+
 :- protocol(hour_tablep).
 
 	:- info([
@@ -996,13 +1078,14 @@
 			B::yaml_path(T, title, Title)
 		),
 		qh(B, T, pw, Pw, '-'),
-		qh(B, T, preface, Se, 0),
-		qh(B, T, lection, Le, 0),
-		qh(B, T, consult, Co, 0),
+		qh(B, T, preface, Se, '-'),
+		qh(B, T, lection, Le, '-'),
+		qh(B, T, consult, Co, '-'),
 		true.
 
 	qh(Body, Topic, Key, Value, _Default) :-
 		Body::yaml_path(Topic, Key, Work),
-		Body::yaml_path(Work, hours, Value),!.
+		y_work(Work)::hours(Value), !.
 	qh(_, _, _, Default, Default).
+
 :- end_object.
