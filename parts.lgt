@@ -597,7 +597,7 @@
 				  'colspec={X[1,l]X[4,l]}'
 				, 'width=\\linewidth'
 				, hlines, vlines
-				, 'cell{1}{1-2} = {c,cmd=\\bfseries, bg=gray}'
+				, 'cell{1}{1-2} = {c,cmd=\\bfseries, bg=gray8}'
 				, 'cell{2}{1-2} = {c,cmd=\\bfseries}'
 				, 'rowhead=2'
 			]),
@@ -610,7 +610,7 @@
 			(
 				findall(Ind, Comp::indicator(Ind), Indicators),
 				T::endrow,
-				T::set_cell([c=2],[l,wd='\\columnwidth', bg=gray]),
+				T::set_cell([c=2],[l,wd='\\columnwidth', bg=gray8]),
 				% T::set_cell([c=2],[l,w='\\linewidth']),
 				draw_catalog_entry(hor(Comp), T, R),
 				T::tab,
@@ -728,7 +728,7 @@
 
 	draw_content_hour_table(plain, Options) :-
 		::renderer(R),
-		::cd_body(_B),
+		::cd_body(Body),
 		::discipline(D),
 		T = longtblr(R, Options),
 		T::begin(
@@ -736,11 +736,12 @@
 				'caption=empty'
 			],
 			[
-				  'colspec={Q[c]Q[l] *{6}{X[c]}}'
+				%  'colspec={Q[c]Q[l] *{6}{X[c]}}'
+				  'colspec={X[1,c,m]X[7,l] *{6}{X[1,c,m]}}'
 				, vlines, hlines
 				, 'width=\\linewidth'
 				, 'cell{1}{1-8} = {c,cmd=\\bfseries}'
-				, 'rowhead=1'
+				, 'rowhead=3'
 			]),
 		T::set_cell([r=3,c=1],[c,m,cmd=bfseries]),
 		R::run('№'), T::tab,
@@ -778,7 +779,39 @@
 		% R::run('Семинарские (практические) занятия'), T::tab,
 		T::rotatebox(90, run('Консульт.')),
 		T::tab(2),
-		T::endrow,
+		HT = y_hour_table(Body, D),
+		forall(HT::section(1-Node, SectionName, Semester,
+					[Lec, Pr, Con], PW, Contr),
+					(
+						T::endrow,
+						T::set_cell([c=2],
+							[l,cmd=bfseries,
+							wd='0.45\\linewidth'
+						]),
+						T::bfcell(SectionName), T::tab(2),
+						T::bfcell(Semester), T::tab,
+						T::bfcell(Lec), T::tab,
+						T::bfcell(Pr), T::tab,
+						T::bfcell(Con), T::tab,
+						T::bfcell(PW), T::tab,
+						T::bfcell(Contr),
+						forall(
+							HT::section(2-Node, SN, S,
+								[L, P, Cc], PP, Cd),
+							(
+								T::endrow,
+								R::run(1), T::tab,
+								R::run(SN), T::tab,
+								R::run(S), T::tab,
+								R::run(L), T::tab,
+								R::run(P), T::tab,
+								R::run(Cc), T::tab,
+								R::run(PP), T::tab,
+								R::run(Cd)
+							)
+						)
+					)
+				),
 		T::end,
 		D::hours(total, _HTotal).
 

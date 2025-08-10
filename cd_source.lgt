@@ -935,3 +935,58 @@
 			handbook/content, Text).
 
 :- end_object.
+
+:- protocol(hour_tablep).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-09,
+		comment is 'Interface for hour table components'
+	]).
+
+	:- public(section/6).
+	:- mode(section(+compound, -string, -integer,
+							-list, -integer, -integer),
+							zero_or_more).
+	:- info(section/6, [
+		comment is 'Describes a level row of table',
+		argnames is ['Level', 'SectionTitle', 'Semester',
+							'MainHourList', 'PersonalWorkHours',
+							'ControlHours']
+	]).
+
+:- end_protocol.
+
+
+:- object(y_hour_table(_Body_, _Discipline_),
+	implements(hour_tablep)).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-09,
+		comment is 'Describe topic-hour table'
+	]).
+
+	:- use_module(library(lists), [member/2]).
+
+	section(1-Topic, Title, 1, [2,2,2], 3, 4) :-
+		B = _Body_,
+		B::yaml(cd/content, Topics), !,
+		member(Topic, Topics),
+		B::yaml_path(Topic, title, Title).
+
+	section(2-Topic, Title, 1, [2,2,2], 3, 4) :-
+		B = _Body_,
+		B::yaml_path(Topic, content, Topics), !,
+		member(T, Topics),
+		(
+			string(T)
+			->
+			Title = T
+			;
+			B::yaml_path(T, title, Title)
+		).
+
+:- end_object.

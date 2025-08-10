@@ -701,13 +701,30 @@
 	:- public(set_cell/2).
 	:- mode(set_cell(+list, +list), one).
 	:- info(set_cell/2, [
-		comment is 'Constructs Setcell[]{} structure',
+		comment is 'Constructs SetCell[]{} structure',
 		argnames is ['AuxiliaryOptions', 'MandatoryOptions']
 	]).
 
 	set_cell(AOptions, MOptions) :-
 		R = _Renderer_,
 		R::run('\\SetCell['),
+		forall(member(O, AOptions),
+			(::draw_option(O), R::run(','))),
+		R::run(']{'),
+		forall(member(O, MOptions),
+			(::draw_option(O), R::run(','))),
+		R::run('}').
+
+	:- public(set_cells/2).
+	:- mode(set_cells(+list, +list), one).
+	:- info(set_cells/2, [
+		comment is 'Constructs SetCells[]{} structure',
+		argnames is ['AuxiliaryOptions', 'MandatoryOptions']
+	]).
+
+	set_cells(AOptions, MOptions) :-
+		R = _Renderer_,
+		R::run('\\SetCells['),
 		forall(member(O, AOptions),
 			(::draw_option(O), R::run(','))),
 		R::run(']{'),
@@ -725,6 +742,8 @@
 		_Renderer_::run('cmd=\\~w', [Cmd]).
 	draw_option(A=B) :-!,
 		_Renderer_::run('~w=~w', [A,B]).
+	draw_option(A-B) :-!,
+		_Renderer_::run('~w-~w', [A,B]).
 	draw_option(O) :-
 		_Renderer_::run(O).
 
@@ -747,6 +766,17 @@
 		R::run('\\rotatebox{~w}{', [Degree]),
 		call(Goal),
 		R::run('}').
+
+	:- public(bfcell/1).
+	:- mode(bfcell(+atom), one).
+	:- info(bfcell/1, [
+		comment is 'Produce pfseries cell if String',
+		argnames is ['String']
+	]).
+
+	bfcell(String) :-
+		set_cell([c=1],[cmd=bfseries]),
+		_Renderer_::run(String).
 
 :- end_object.
 

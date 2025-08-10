@@ -244,6 +244,10 @@
 	% require_package([russian,english], babel).
 	require_package([], none).
 
+	require_package(Package) :-
+		^^require_package(Package).
+	require_package(ninecolors).
+
 	setup(after_begin_document) :-
 		::cmd('renewcommand{\\baselinestretch}{1.5}').
 
