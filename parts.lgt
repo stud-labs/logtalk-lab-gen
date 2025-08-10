@@ -907,3 +907,79 @@
 		R::par.
 
 :- end_category.
+
+
+:- protocol(activityp).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-10,
+		comment is 'Protocol describing work done during education'
+	]).
+
+	:- public(hours/1).
+	:- mode(hours(-number), one).
+	:- info(hours/1, [
+		comment is 'Hours spent to this work',
+		argnames is ['NumberOfHours']
+	]).
+
+	:- public(part/1).
+	:- mode(part(-atom), zero_or_more).
+	:- info(part/1, [
+		comment is 'Work part can / to be done',
+		argnames is ['WorkTitle']
+	]).
+
+	:- public(competence/1).
+	:- mode(competence(-atom), zero_or_more).
+	:- info(competence/1, [
+		comment is 'Competence related to the work',
+		argnames is ['Competence']
+	]).
+
+	:- public(test/1).
+	:- mode(test(-atom), zero_or_more).
+	:- info(test/1, [
+		comment is 'Describe test, which indicates competence ',
+		argnames is ['Test']
+	]).
+
+	% :- public(type/1).
+	% :- mode(type(-atom), one_or_more).
+	% :- info(type/1, [
+	% 	comment is 'Type of activity',
+	% 	argnames is []
+	% ]).
+
+:- end_protocol.
+
+:- object(activity).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-10,
+		comment is 'Describes general knowledge about activity'
+	]).
+
+	:- protected(activity_class/2).
+	:- mode(activity_class(?atom, ?atom), zero_or_more).
+	:- info(activity_class/2, [
+		comment is 'Classes of hours definition',
+		argnames is ['Class', 'HourAtom']
+	]).
+
+	activity_class(contact, labwork).
+	activity_class(contact, lection).
+	activity_class(contact, practice).
+	activity_class(contact, seminary).
+	activity_class(personal, pw).
+	activity_class(education, contact).
+	activity_class(education, personal).
+	activity_class(assessment, exam).
+	activity_class(assessment, credit).
+	activity_class(assessment, grade_credit).
+
+:- end_object.

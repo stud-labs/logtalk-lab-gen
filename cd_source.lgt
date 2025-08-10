@@ -752,22 +752,6 @@
 % КО
 % Переатт
 
-	:- public(hour_class/2).
-	:- mode(hour_class(?atom, ?atom), zero_or_more).
-	:- info(hour_class/2, [
-		comment is 'Classes of hours definition',
-		argnames is ['Class', 'HourAtom']
-	]).
-
-	hour_class(contact, labwork).
-	hour_class(contact, lection).
-	hour_class(contact, practice).
-	hour_class(contact, seminary).
-	hour_class(personal, pw).
-	hour_class(assessment, exam).
-	hour_class(assessment, credit).
-	hour_class(assessment, grade_credit).
-
 	:- public(hours/2).
 	:- mode(hours(+atom, -number), zero_or_more).
 	:- info(hours/2, [
@@ -936,48 +920,9 @@
 
 :- end_object.
 
-:- protocol(activityp).
-
-	:- info([
-		version is 1:0:0,
-		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
-		date is 2025-08-10,
-		comment is 'Protocol describing work done during education'
-	]).
-
-	:- public(hours/1).
-	:- mode(hours(-number), one).
-	:- info(hours/1, [
-		comment is 'Hours spent to this work',
-		argnames is ['NumberOfHours']
-	]).
-
-	:- public(part/1).
-	:- mode(part(-atom), zero_or_more).
-	:- info(part/1, [
-		comment is 'Work part can / to be done',
-		argnames is ['WorkTitle']
-	]).
-
-	:- public(competence/1).
-	:- mode(competence(-atom), zero_or_more).
-	:- info(competence/1, [
-		comment is 'Competence related to the work',
-		argnames is ['Competence']
-	]).
-
-	:- public(test/1).
-	:- mode(test(-atom), zero_or_more).
-	:- info(test/1, [
-		comment is 'Describe test, which indicates competence ',
-		argnames is ['Test']
-	]).
-
-:- end_protocol.
-
 :- object(y_activity(_YAML_),
 	implements([catalog_entryp, activityp]),
-	extends(yaml_object(_YAML_))).
+	extends([activity, yaml_object(_YAML_)])).
 
 	:- info([
 		version is 1:0:0,
@@ -1015,6 +960,9 @@
 			;
 			number_string(Hours, String)
 		).
+
+	% semester(_Semester_).
+	% discipline(_Discipline_).
 
 :- end_object.
 
