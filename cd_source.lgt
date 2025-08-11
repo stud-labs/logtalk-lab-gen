@@ -1057,10 +1057,7 @@
 						]),
 					pw(64)
 				]),
-			control(
-				[
-					credit(64)
-				])
+			control(8)
 		]).
 
 :- end_object.

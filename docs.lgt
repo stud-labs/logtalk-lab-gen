@@ -460,7 +460,7 @@
 
 	:- use_module(library(lists), [member/2]).
 	:- public(gen/2).
-	:- meta_predicate(gen(0,0)).
+	:- meta_predicate(gen(0,*)).
 	gen(DataGoal, ListOrGoal):-
 		forall(
 			call(DataGoal),
@@ -630,10 +630,11 @@
 	tab(1) :-
 		::tab.
 	tab(N) :-
-		N > 1,
+		N > 1, !,
 		tab(1),
 		N1 is N-1,
 		tab(N1).
+	tab(_).
 
 	:- public(end/0).
 	:- mode(end, one).
