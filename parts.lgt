@@ -810,10 +810,8 @@
 			H is max(HA+1, HT).
 		header_height(_, 0).
 
-	conv(A,A).
-
 	draw_column(T, R, Atom, _H-W) :-
-		conv(Atom, String),
+		::atom_title(Atom, String),
 		(
 			%H>1, W=1
 			W is 1
@@ -837,7 +835,7 @@
 		draw_header_rest(T, R, HS, HSL, HSH, RowNo, RowNo).
 
 	draw_header_rest(_, _, [], _, _, _, 1 ) :-!.
-	draw_header_rest(T, R, ['#tab#'], HSL, HSH, RowNo, 1) :- !.
+	draw_header_rest(_, _, ['#tab#'], _, _, _, 1) :- !.
 	draw_header_rest(T, R, ['#tab#'|TX], HSL, HSH, RowNo, 1) :- !,
 		T::tab,
 		draw_header_rest(T,R, TX, HSL, HSH, RowNo, 1).
@@ -875,7 +873,7 @@
 		N > 1,
 		% debugger::trace,
 		collect2nd(L, L1),
-		format('List:~w~n', [L1]),
+		% format('List:~w~n', [L1]),
 		N1 is N-1,
 		draw_header_rest(T, R, L1, HSL, HSH, RowNo, N1).
 

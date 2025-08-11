@@ -232,6 +232,28 @@
 
 	discipline(_Discipline_).
 
+	:- public(atom_title/2).
+	:- mode(atom_title(?atom, ?atom), zero_or_one).
+	:- info(atom_title/2, [
+		comment is 'Juxtapose atom to its screen title',
+		argnames is ['AtomName', 'ScreenName']
+	]).
+
+	atom_title(Atom, Title) :-
+		atom_title_(Atom, Title), !.
+	atom_title(Atom, Atom).
+
+	atom_title_(pw, 'Сам. работа').
+	atom_title_(control, 'Контроль').
+	atom_title_(consult, 'Конс.').
+	atom_title_(practice,'Пр. зан.').
+	atom_title_(lection, 'Лекции').
+	atom_title_(semester, 'Семестр').
+	atom_title_(education, 'Виды учебной работы').
+	atom_title_(contact, 'Контактная работа').
+
+
+
 :- end_object.
 
 :- object(cd_latex_renderer(_FileName_),
