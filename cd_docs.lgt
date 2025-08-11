@@ -240,24 +240,7 @@
 	]).
 
 	atom_title(Atom, Title) :-
-		atom_title_(Atom, Title), !.
-	atom_title(Atom, Atom).
-
-	atom_title_(pw, 'Сам. работа').
-	atom_title_(control, 'Контроль').
-	atom_title_(lab, 'Лаб. раб.').
-	atom_title_(labwork, 'Лаб. раб.').
-	atom_title_(laboratory, 'Лаб. раб.').
-	atom_title_(lw, 'Лаб. раб.').
-	atom_title_(seminary, 'Сем.').
-	atom_title_(consult, 'Конс.').
-	atom_title_(practice,'Пр. зан.').
-	atom_title_(lection, 'Лекции').
-	atom_title_(semester, 'Семестр').
-	atom_title_(education, 'Виды учебной работы').
-	atom_title_(contact, 'Контактная работа').
-
-
+		_Discipline_::atom_title(Atom, Title).
 
 :- end_object.
 

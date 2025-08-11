@@ -558,6 +558,7 @@
 :- end_object.
 
 :- object(cd_discipline(_Code_, _Title_),
+	extends(discipline),
 	implements([disciplinep, catalog_entryp]),
 	imports(exoptions)).
 
@@ -986,11 +987,34 @@
 							'ControlHours']
 	]).
 
+	:- public(section/4).
+	:- mode(section(+compound, -string, +list, -compound),
+							zero_or_more).
+	:- info(section/4, [
+		comment is 'Describes a level row of table',
+		argnames is ['Level', 'SectionTitle',
+					'ListOfKeys', 'DataCompoind']
+	]).
+
 	:- public(header_structure/1).
 	:- mode(header_structure(-compound), zero_or_one).
 	:- info(header_structure/1, [
 		comment is 'Deduce the table header structure',
 		argnames is ['TableHeaderStructure']
+	]).
+
+	:- public(semester/1).
+	:- mode(semester(-number), one_or_more).
+	:- info(semester/1, [
+		comment is 'Describe semester number, when the discipline is being taught.',
+		argnames is ['Number']
+	]).
+
+	:- public(semesters/1).
+	:- mode(semesters(-list), zero_or_one).
+	:- info(semesters/1, [
+		comment is 'List of semestaer during which the dispicpline is being taught',
+		argnames is ['ListOfNumbers']
 	]).
 
 
@@ -1008,6 +1032,36 @@
 	]).
 
 	:- use_module(library(lists), [member/2]).
+
+	section(1-Topic, Title, P, Decls) :-
+		B = _Body_,
+		B::yaml(cd/content, Topics), !,
+		member(Topic, Topics),
+		B::yaml_path(Topic, title, Title),
+		format('Pattern: ~w~n', [P]),
+		findall(Decl,
+			(
+				member(Key, P),
+				get_qh(B, Topic, Key, Decl, '-u-')),
+			Decls).
+
+	section(2-Topic, Title, P, Decls) :-
+		B = _Body_,
+		B::yaml_path(Topic, content, Topics), !,
+		member(T, Topics),
+		(
+			string(T)
+			->
+			Title = T
+			;
+			B::yaml_path(T, title, Title)
+		),
+		findall(Decl,
+			(
+				member(M, P),
+				get_qh(B, T, M, Decl, '-')
+			),
+			Decls).
 
 	section(1-Topic, Title, 1, [Le,Se,Co], Pw, 0) :-
 		B = _Body_,
@@ -1044,22 +1098,41 @@
 		y_activity(Work)::hours(Value), !.
 	qh(_, _, _, Default, Default).
 
+	get_qh(Body, Topic, Key, Decl, Default) :-
+		qh(Body, Topic, Key, Value, Default),
+		Decl =.. [Key, Value].
+
 	header_structure(
 		[
-			semester(1),
+			semester(length(SemLen)),
 			education(
 				[
-					contact(
-						[
-							  lection(0)
-							, labwork(36)
-							, seminary(36)
-							, practice(36)
-							, consult(0)
-						]),
-					pw(64)
+					contact(Contacts),
+					pw(PWH)
 				]),
-			control(8)
-		]).
+			control(Control)
+		]) :-
+		::semesters(Semesters),
+		length(Semesters, SemLen),
+		D = _Discipline_,
+		D::hours(pw, PWH),
+		findall(Decl,
+			get_value(contact, Decl),
+			Contacts
+		),
+		D::hours(control, Control).
+
+
+	get_value(Class, Decl) :-
+		activity::activity_class(Class, Activity),
+		_Discipline_::hours(Activity, Hours),
+		Decl =.. [Activity, Hours].
+
+	semesters(List) :-
+		_Body_::yaml(cd/semesters, List).
+
+	semester(Semester) :-
+		::semesters(List),
+		member(Semester, List).
 
 :- end_object.

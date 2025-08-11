@@ -761,8 +761,9 @@
 		forall(between(1, HSH, RowNo),
 			draw_header_row(T, R, HS, HSL, HSH, RowNo)
 		),
-		forall(HT::section(1-Node, SectionName, Semester,
-					[Lec, Pr, Con], PW, Contr),
+		flatten(HS, FHS),
+		make_pattern(FHS, PHS),
+		forall(HT::section(1-Node, SectionName, PHS, Decls1),
 					(
 						T::endrow,
 						T::set_cell([c=2],
@@ -770,29 +771,20 @@
 							wd='0.45\\linewidth'
 						]),
 						T::bfcell(SectionName), T::tab(2),
-						T::bfcell(Semester), T::tab,
-						T::bfcell(Lec), T::tab,
-						T::bfcell(Pr), T::tab,
-						T::bfcell(Con), T::tab,
-						T::bfcell(PW), T::tab,
-						T::bfcell(Contr),
+						draw_row_rest(T,R,Decls1),
 						forall(
-							HT::section(2-Node, SN, S,
-								[L, P, Cc], PP, Cd),
+							HT::section(2-Node, SN, PHS, Decls2),
 							(
 								T::endrow,
 								R::run(1), T::tab,
 								R::run(SN), T::tab,
-								R::run(S), T::tab,
-								R::run(L), T::tab,
-								R::run(P), T::tab,
-								R::run(Cc), T::tab,
-								R::run(PP), T::tab,
-								R::run(Cd)
+								draw_row_rest(T,R, Decls2)
 							)
 						)
 					)
 				),
+		T::endrow, !,
+		draw_total_row(T, R, FHS, HSL, HSH, total(1)),
 		T::end,
 		D::hours(total, _HTotal).
 
@@ -874,9 +866,33 @@
 		N > 1,
 		% debugger::trace,
 		collect2nd(L, L1),
-		% format('List:~w~n', [L1]),
+		format('List:~w~n', [L1]),
 		N1 is N-1,
 		draw_header_rest(T, R, L1, HSL, HSH, RowNo, N1).
+
+	draw_total_row(T, R, FHS, HSL, HSH, total(1)) :-
+		T::set_cell([c=3],[l,m,cmd=bfseries]),
+		R::run('Итого часов'), T::tab,
+		format('Flatten: ~w~n', [FHS]),
+		draw_total_rest(T, R, FHS, HSL, HSH, total(1)).
+
+	draw_total_rest(_, _, [],    _, _, total(1)) :-!.
+	draw_total_rest(_, R, [X], _, _, total(1)) :-
+		X =.. [_, Value], !,
+		R::boldface(R::run('~w', [Value])).
+	draw_total_rest(T, R, [X|TX], HSL, HSH, total(1)) :- !,
+		draw_total_rest(T, R, [X], HSL, HSH, total(1)),
+		T::tab,
+		draw_total_rest(T, R, TX, HSL, HSH, total(1)).
+
+	draw_row_rest(_, _, []):-!.
+	draw_row_rest(_, R, [X]):-!,
+		X =.. [_, Arg],
+		R::run(Arg).
+	draw_row_rest(T, R, [X|TX]):-
+		draw_row_rest(T, R, [X]),
+		T::tab,
+		draw_row_rest(R, R, TX).
 
 	:- use_module(library(lists), [append/3]).
 
@@ -888,6 +904,24 @@
 		append(Args, NT, L).
 	collect2nd([_|T], ['#tab#'|NT]):-
 		collect2nd(T, NT).
+
+	flatten([], []):-!.
+	flatten([L|T], R) :-
+		is_list(L), !,
+		append(L, T, L1),
+		flatten(L1, R).
+	flatten([X|T], R) :-
+		X =.. [_, Args],
+		is_list(Args), !,
+		append(Args, T, T1),
+		flatten(T1, R).
+	flatten([X|T], [X|T1]) :-
+		flatten(T, T1).
+
+	make_pattern([], []):-!.
+	make_pattern([X|T], [Atom|NT]):-
+		X=..[Atom, _],
+		make_pattern(T, NT).
 
 	substantiate([], []).
 	substantiate([X|T], R) :-
@@ -1095,7 +1129,7 @@
 		comment is 'Describes general knowledge about activity'
 	]).
 
-	:- protected(activity_class/2).
+	:- public(activity_class/2).
 	:- mode(activity_class(?atom, ?atom), zero_or_more).
 	:- info(activity_class/2, [
 		comment is 'Classes of hours definition',
@@ -1112,5 +1146,35 @@
 	activity_class(assessment, exam).
 	activity_class(assessment, credit).
 	activity_class(assessment, grade_credit).
+
+:- end_object.
+
+:- object(discipline).
+
+	:- public(atom_title/2).
+	:- mode(atom_title(?atom, ?atom), zero_or_one).
+	:- info(atom_title/2, [
+		comment is 'Juxtapose atom to its screen title',
+		argnames is ['AtomName', 'ScreenName']
+	]).
+
+	atom_title(Atom, Title) :-
+		atom_title_(Atom, Title), !.
+	atom_title(Atom, Atom).
+
+	atom_title_(pw, 'Сам. работа').
+	atom_title_(control, 'Контроль').
+	atom_title_(lab, 'Лаб. раб.').
+	atom_title_(labwork, 'Лаб. раб.').
+	atom_title_(laboratory, 'Лаб. раб.').
+	atom_title_(lw, 'Лаб. раб.').
+	atom_title_(seminary, 'Сем.').
+	atom_title_(consult, 'Конс.').
+	atom_title_(practice,'Пр. зан.').
+	atom_title_(lection, 'Лекции').
+	atom_title_(semester, 'Семестр').
+	atom_title_(education, 'Виды учебной работы').
+	atom_title_(contact, 'Контактная работа').
+
 
 :- end_object.

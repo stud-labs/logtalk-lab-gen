@@ -12,19 +12,21 @@
     logtalk_load(debugger(loader)),  % debugging
     logtalk_load([
 		morpher
-	 , global
-    , docs]),
+	 , global]),
+	 logtalk_load([
+	   docs
+	 ], [debug(off)]),
     % logtalk_load(options(loader)),
     % load the project source files
-    set_logtalk_flag(debug, on),
+    % set_logtalk_flag(debug, on),
     logtalk_load([
       parts
-    ]),
-    set_logtalk_flag(debug, off),
+    ], [debug(on)]),
+    % set_logtalk_flag(debug, off),
     logtalk_load([
 	   cd_source
 	 , cd_docs
-    ]),
+    ], [debug(on)]),
 		Code = 'Б1.В.ДВ.01.01',
 		forall(
 			(
