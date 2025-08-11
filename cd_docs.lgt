@@ -245,6 +245,11 @@
 
 	atom_title_(pw, 'Сам. работа').
 	atom_title_(control, 'Контроль').
+	atom_title_(lab, 'Лаб. раб.').
+	atom_title_(labwork, 'Лаб. раб.').
+	atom_title_(laboratory, 'Лаб. раб.').
+	atom_title_(lw, 'Лаб. раб.').
+	atom_title_(seminary, 'Сем.').
 	atom_title_(consult, 'Конс.').
 	atom_title_(practice,'Пр. зан.').
 	atom_title_(lection, 'Лекции').

@@ -732,7 +732,8 @@
 		::discipline(D),
 		HT = y_hour_table(Body, D),
 		% figure out main table parameters
-		HT::header_structure(HS),
+		HT::header_structure(HS1),
+		substantiate(HS1, HS),
 		rec_length(HS, HSL),
 		header_height(HS,HSH),
 		T = longtblr(R, Options),
@@ -887,6 +888,20 @@
 		append(Args, NT, L).
 	collect2nd([_|T], ['#tab#'|NT]):-
 		collect2nd(T, NT).
+
+	substantiate([], []).
+	substantiate([X|T], R) :-
+		X =.. [_ , [Arg]], !,
+		substantiate([Arg|T],R).
+	substantiate([X|T], R) :-
+		X =.. [Atom, Args],
+		substantiate(Args, Args1),
+		Args \= Args1,
+		!,
+		NX =.. [Atom, Args1],
+		substantiate([NX|T], R).
+	substantiate([X|T], [X|NT]) :-
+		substantiate(T, NT).
 		/*
 		::option(education(ED), HS),
 		rec_length(ED, EDL),

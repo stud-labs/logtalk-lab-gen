@@ -1051,9 +1051,11 @@
 				[
 					contact(
 						[
-							lection(0),
-							practice(36),
-							consult(0)
+							  lection(0)
+							, labwork(36)
+							, seminary(36)
+							, practice(36)
+							, consult(0)
 						]),
 					pw(64)
 				]),
