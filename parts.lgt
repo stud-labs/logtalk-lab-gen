@@ -759,8 +759,8 @@
 		format(atom(RowHead),
 			'rowhead=~w',
 			[HSH]),
-		::option(width(mh_table, TblWidth), Option, width('\\linewidth')),
-		::option(caption(mh_table, TblCapture), Option, width(empty)),
+		::option(width(mh_table, TblWidth), Options, width(mh_table, '\\linewidth')),
+		::option(caption(mh_table, TblCapture), Options, caption(mh_table, empty)),
 		format(atom(WidthStr), 'width=~w', [TblWidth]),
 		format(atom(CaptionStr), 'caption=~w', [TblCapture]),
 		::mh_basic_specs(BSpecs),
@@ -775,6 +775,7 @@
 				, RowHead
 				| BSpecs
 			]),
+		R::run('~n% ~w~n%~w~n', [HS, FHS]),
 		forall(
 			(
 				between(1, HSH, RowNo),
@@ -841,7 +842,8 @@
 			;
 			true
 		),
-		R::run(Value).
+		R::run(Value),
+		T::tab.
 
 	collect2nd([], []).
 	collect2nd([X|T], L):-
@@ -971,12 +973,13 @@
 
 	mh_cell(spec(title(_)), _RowNo, []-[l,cmd=bfseries]).
 
-	mh_cell(title(_), _RowNo, 'Title').
-	mh_cell(number(_), RowNo, RowNo).
+	mh_cell(title(_), header(_RowNo), 'Title').
+	mh_cell(number(_), header(_RowNo), '№').
+	mh_cell(_, header(_), 'Header-stub').
 	mh_cell(_, _, 'stub').
 	mh_cellspec(FHS, CellsSpec) :-
 		length(FHS, FHSL),
-		format(atom(CellsSpec), 'cell{1}{1-~w} = {c,cmd=\\bfseries}', FHSL).
+		format(atom(CellsSpec), 'cell{1}{1-~w} = {c,cmd=\\bfseries}', [FHSL]).
 
 		% figure out main table parameters
 		% format(atom(ColSpec),
