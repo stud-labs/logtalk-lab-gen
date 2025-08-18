@@ -709,8 +709,226 @@
 
 :- end_category.
 
-:- category(content_hour_tablec,
+:- category(multihead_tablec,
 	extends(exoptions)).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-17,
+		comment is 'Draws layered head table'
+	]).
+
+	:- public(draw_multihead_table/2).
+	:- mode(draw_multihead_table(+atom, +list), zero_or_one).
+	:- info(draw_multihead_table/2, [
+		comment is 'Draws conmtent of a MH table',
+		argnames is ['Style', 'OptionList']
+	]).
+
+	ac(Element, V0, V1) :-
+		format(atom(V1), '~w ~w', [V0, Element]).
+
+	draw_multihead_table(Style, Options) :-
+		::renderer(R),
+		::mh_header_structure(HSOrig),
+		substantiate(HSOrig, HS),
+		flatten(HS, FHS),
+		rec_length(HS, HSL),
+		header_height(HS,HSH),
+		T = longtblr(R, Options),
+		findall(CS,
+			(
+				member(E, FHS)
+				::mh_colspec(E, CS),
+			), CSpecs),
+		foldl(
+			ac,
+			CSpecs,
+			'',
+			CSpecsAtom
+		),
+		format(atom(ColSpec),
+			'colspec={~w}',
+			[CSpecsAtom]),
+		mh_cellspec(HSL, CellsSpec),
+		format(atom(RowHead),
+			'rowhead=~w',
+			[HSH]),
+		::option(width(mh_table, TblWidth), Option, width('\\linewidth')),
+		::option(caption(mh_table, TblCapture), Option, width(empty)),
+		format(atom(WidthStr), 'width=~w', [TblWidth]),
+		format(atom(CaptionStr), 'caption=~w', [TblCapture]),
+		::mh_basic_specs(BSpecs),
+		T::begin(
+			[
+				CaptionStr
+			],
+			[
+				  ColSpec
+				, TblWidth
+				, CellsSpec
+				, RowHead
+				| BSpecs
+			]),
+		forall(
+			(
+				between(1, HSH, RowNo),
+				draw_row(T, R, HS, HSL, HSH, header(RowNo)
+			)
+			T::endrow
+		),
+		forall(
+			draw_row(T, R, FHS, HSL, HSH, RowNumber),
+			T::endrow
+		),
+		draw_row(T, R, FHS, HSL, HSH, total(1)),
+		T::end,
+		true.
+
+	:- protected(mh_basic_specs/1).
+	:- mode(mh_basic_specs, one).
+	:- info(mh_basic_specs/1, [
+		comment is 'Defines basec specifications for Xtblr',
+		argnames is ['List of specs']
+	]).
+
+	mh_basic_specs([vlines, hlines]).
+
+	rec_length([], 0) .
+	rec_length([Def| T], LL) :-
+		Def =.. [_, Args], !,
+		rec_length(Args, L),
+		rec_length(T, LT),
+		LL is L + LT.
+	rec_length(_, 1).
+
+	header_height([X | T], H) :-
+		X =.. [_, Args], !,
+		header_height(Args, HA),
+		header_height(T, HT),
+		H is max(HA+1, HT).
+	header_height(_, 0).
+
+	draw_row(T, R, HS, HSL, HSH, header(RowNo)) :-,
+		nonvar(RowNo),
+		RowNo >= 0, RowNo=<HSH, !,
+		forall(
+			member(Cell, HS),
+			draw_cell(T, R, Cell, HSL, HSH, header(RowNo))).
+
+	draw_row(T, R, HS, HSL, HSH, total(RowNo)) :-
+		nonvar(RowNo), !,
+		forall(
+			member(Cell, HS),
+			draw_cell(T, R, Cell, HSL, HSH, header(RowNo))).
+
+	draw_row(T, R, HS, HSL, HSH, RowNo) :-
+		forall(
+			member(Cell, HS),
+			draw_cell(T, R, Cell, HSL, HSH, RowNo)).
+
+	draw_cell(T, R, Cell, HSL, HSH, RowNo) :-
+		::mh_cell(Cell, RowNo, Value),
+		(
+			::mh_cell(spec(Cell), RowNo, A-B)
+			->
+			T::set_cell(A,B)
+			;
+			true
+		),
+		R::run(Value).
+
+
+	:- use_module(library(lists), [append/3]).
+
+	collect2nd([], []).
+	collect2nd([X|T], L):-
+		X =.. [_, Args],
+		is_list(Args), !,
+		collect2nd(T, NT),
+		append(Args, NT, L).
+	collect2nd([_|T], ['#tab#'|NT]):-
+		collect2nd(T, NT).
+
+	flatten([], []):-!.
+	flatten([L|T], R) :-
+		is_list(L), !,
+		append(L, T, L1),
+		flatten(L1, R).
+	flatten([X|T], R) :-
+		X =.. [_, Args],
+		is_list(Args), !,
+		append(Args, T, T1),
+		flatten(T1, R).
+	flatten([X|T], [X|T1]) :-
+		flatten(T, T1).
+
+	make_pattern([], []):-!.
+	make_pattern([X|T], [Atom|NT]):-
+		X=..[Atom, _],
+		make_pattern(T, NT).
+
+	substantiate([], []).
+	substantiate([X|T], R) :-
+		X =.. [_ , [Arg]], !,
+		substantiate([Arg|T],R).
+	substantiate([X|T], R) :-
+		X =.. [Atom, Args],
+		substantiate(Args, Args1),
+		Args \= Args1,
+		!,
+		NX =.. [Atom, Args1],
+		substantiate([NX|T], R).
+	substantiate([X|T], [X|NT]) :-
+		substantiate(T, NT).
+
+:- end_category.
+
+:- protocol(multihead_tablep,
+	extends()).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-17,
+		comment is 'Protocol for gathering data about multihead table'
+	]).
+
+	:- public(mh_cell/3).
+	:- mode(mh_cell(?compound, ?integer, -value), zero_or_more).
+	:- info(mh_cell/3, [
+		comment is 'Defines cell',
+		argnames is ['Cell', 'RowNumber', 'Value']
+	]).
+
+	:- public(mh_basic_specs/1).
+	:- mode(mh_basic_specs(-list), zero_or_one).
+	:- info(mh_basic_specs/1, [
+		comment is 'Defines basic specs for tblr',
+		argnames is ['ListOfSpecifications']
+	]).
+
+	:- public(mh_colspec/2).
+	:- mode(mh_colspec, one).
+	:- info(mh_colspec/2, [
+		comment is 'Returns header column specifications',
+		argnames is ['Column','ColumnSpecification']
+	]).
+
+	:- public(mh_header_structure/1).
+	:- mode(mh_header_structure, zero_or_one).
+	:- info(mh_header_structure/1, [
+		comment is 'Defines structure of multihead table',
+		argnames is ['ListOfCompounds']
+	]).
+
+:- end_protocol.
+
+
+:- category(content_hour_tablec,
+	implements(multihead_tablep),
+	extends(multihead_tablec)).
 
 	:- info([
 		version is 1:0:0,
@@ -727,16 +945,27 @@
 	]).
 
 	draw_content_hour_table(plain, Options) :-
-		::renderer(R),
-		::cd_body(Body),
+		^^draw_multihead_table(plain, Options).
+
+	mh_header_structure([number(1), title('title') | HST]) :-
 		::discipline(D),
+		::cd_body(Body),
 		HT = y_hour_table(Body, D),
+		HT::header_structure(HST).
+
+	mh_colspec(number(_), 'X[1,c,m]'):-!.
+	mh_colspec(title(_), 'X[7,l]'):-!.
+	mh_colspec(_, 'X[1,cm]').
+
+	mh_basic_specs([vlines, hlines]).
+
+	mh_cell(spec(title(_)), RowNo, []-[l,cmd=bfseries]).
+
+	mh_cell(title(_), RowNo, 'Title').
+	mh_cell(number(_), RowNo, RowNo).
+	mh_cell()
+
 		% figure out main table parameters
-		HT::header_structure(HS1),
-		substantiate(HS1, HS),
-		rec_length(HS, HSL),
-		header_height(HS,HSH),
-		T = longtblr(R, Options),
 		format(atom(ColSpec),
 			'colspec={X[1,c,m]X[7,l] *{~w}{X[1,c,m]}}',
 			[HSL]),
@@ -936,49 +1165,6 @@
 		substantiate([NX|T], R).
 	substantiate([X|T], [X|NT]) :-
 		substantiate(T, NT).
-		/*
-		::option(education(ED), HS),
-		rec_length(ED, EDL),
-		T::set_cell([c=EDL],[c,cmd=bfseries]),
-		R::run('Виды учебной работы'),
-		%R::run('Виды учебной работы, включая'), R::par,
-		%R::run('самостоятельную работу'), R::par,
-		%R::run('обучающихся и трудоемкость'), R::par,
-		%R::run('(в часах)'),
-		T::tab(EDL),
-		T::set_cell([r=HSH,c=1],[c,cmd=bfseries]),
-		T::rotatebox(90, run('Контр. успев./сем.')),
-		% R::run('Формы текущего контроля успеваемости; Форма промежуточной аттестации (по семестрам)'),
-		T::endrow,
-		T::tab(3),
-		::option(contact(CD), ED),
-		rec_length(CD, CDL),
-		T::set_cell([c=CDL],[c,cmd=bfseries]),
-		R::run('Контактная работа'),
-		%R::run('Контактная работа'), R::par,
-		%R::run('преподавателя'), R::par,
-		%R::run('с обучающимися'),
-		T::tab(CDL),
-		(
-			::option(pw(_), ED)
-			->
-			HSHM1 is HSH - 1,
-			T::set_cell([r=HSHM1,c=1],[c, cmd=bfseries]),
-			T::rotatebox(90, R::run('Сам. работа')) % TODO
-			% R::run('СР'), % Самостоятельная работа
-			;
-			true
-		),
-		T::tab,
-		T::endrow,
-		T::tab(3),
-		T::rotatebox(90, run('Лекции')), T::tab,
-		T::rotatebox(90, run('Сем./пр.')), T::tab,
-		% R::run('Семинарские (практические) занятия'), T::tab,
-		T::rotatebox(90, run('Консульт.')),
-		T::tab(2),
-*/
-
 
 :- end_category.
 
