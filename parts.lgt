@@ -726,10 +726,13 @@
 		argnames is ['Style', 'OptionList']
 	]).
 
+	:- use_module(library(lists), [append/3, member/2]).
+	:- use_module(library(apply), [foldl/4]).
+
 	ac(Element, V0, V1) :-
 		format(atom(V1), '~w ~w', [V0, Element]).
 
-	draw_multihead_table(Style, Options) :-
+	draw_multihead_table(plain, Options) :-
 		::renderer(R),
 		::mh_header_structure(HSOrig),
 		substantiate(HSOrig, HS),
@@ -739,9 +742,10 @@
 		T = longtblr(R, Options),
 		findall(CS,
 			(
-				member(E, FHS)
-				::mh_colspec(E, CS),
-			), CSpecs),
+				member(E, FHS),
+				::mh_colspec(E, CS)
+			),
+		CSpecs),
 		foldl(
 			ac,
 			CSpecs,
@@ -751,7 +755,7 @@
 		format(atom(ColSpec),
 			'colspec={~w}',
 			[CSpecsAtom]),
-		mh_cellspec(HSL, CellsSpec),
+		::mh_cellspec(FHS, CellsSpec),
 		format(atom(RowHead),
 			'rowhead=~w',
 			[HSH]),
@@ -766,7 +770,7 @@
 			],
 			[
 				  ColSpec
-				, TblWidth
+				, WidthStr
 				, CellsSpec
 				, RowHead
 				| BSpecs
@@ -774,12 +778,12 @@
 		forall(
 			(
 				between(1, HSH, RowNo),
-				draw_row(T, R, HS, HSL, HSH, header(RowNo)
-			)
+				draw_row(T, R, HS, HSL, HSH, header(RowNo))
+			),
 			T::endrow
 		),
 		forall(
-			draw_row(T, R, FHS, HSL, HSH, RowNumber),
+			draw_row(T, R, FHS, HSL, HSH, _RowNumber),
 			T::endrow
 		),
 		draw_row(T, R, FHS, HSL, HSH, total(1)),
@@ -787,7 +791,7 @@
 		true.
 
 	:- protected(mh_basic_specs/1).
-	:- mode(mh_basic_specs, one).
+	:- mode(mh_basic_specs(-list), one).
 	:- info(mh_basic_specs/1, [
 		comment is 'Defines basec specifications for Xtblr',
 		argnames is ['List of specs']
@@ -810,7 +814,7 @@
 		H is max(HA+1, HT).
 	header_height(_, 0).
 
-	draw_row(T, R, HS, HSL, HSH, header(RowNo)) :-,
+	draw_row(T, R, HS, HSL, HSH, header(RowNo)) :-
 		nonvar(RowNo),
 		RowNo >= 0, RowNo=<HSH, !,
 		forall(
@@ -828,7 +832,7 @@
 			member(Cell, HS),
 			draw_cell(T, R, Cell, HSL, HSH, RowNo)).
 
-	draw_cell(T, R, Cell, HSL, HSH, RowNo) :-
+	draw_cell(T, R, Cell, _HSL, _HSH, RowNo) :-
 		::mh_cell(Cell, RowNo, Value),
 		(
 			::mh_cell(spec(Cell), RowNo, A-B)
@@ -838,9 +842,6 @@
 			true
 		),
 		R::run(Value).
-
-
-	:- use_module(library(lists), [append/3]).
 
 	collect2nd([], []).
 	collect2nd([X|T], L):-
@@ -885,8 +886,7 @@
 
 :- end_category.
 
-:- protocol(multihead_tablep,
-	extends()).
+:- protocol(multihead_tablep).
 
 	:- info([
 		version is 1:0:0,
@@ -910,14 +910,24 @@
 	]).
 
 	:- public(mh_colspec/2).
-	:- mode(mh_colspec, one).
+	:- mode(mh_colspec(+compound, -atom), one).
 	:- info(mh_colspec/2, [
 		comment is 'Returns header column specifications',
 		argnames is ['Column','ColumnSpecification']
 	]).
 
+	:- public(mh_cellspec/2).
+	:- mode(mh_cellspec(+list(compound), -atom), zero_or_one).
+	:- info(mh_cellspec/2, [
+		comment is 'Defines cell specification for tblr',
+		argnames is ['FlattenedCompoundList', 'Specification']
+	]).
+
+
+
+
 	:- public(mh_header_structure/1).
-	:- mode(mh_header_structure, zero_or_one).
+	:- mode(mh_header_structure(-list(compound)), zero_or_one).
 	:- info(mh_header_structure/1, [
 		comment is 'Defines structure of multihead table',
 		argnames is ['ListOfCompounds']
@@ -959,78 +969,67 @@
 
 	mh_basic_specs([vlines, hlines]).
 
-	mh_cell(spec(title(_)), RowNo, []-[l,cmd=bfseries]).
+	mh_cell(spec(title(_)), _RowNo, []-[l,cmd=bfseries]).
 
-	mh_cell(title(_), RowNo, 'Title').
+	mh_cell(title(_), _RowNo, 'Title').
 	mh_cell(number(_), RowNo, RowNo).
-	mh_cell()
+	mh_cell(_, _, 'stub').
+	mh_cellspec(FHS, CellsSpec) :-
+		length(FHS, FHSL),
+		format(atom(CellsSpec), 'cell{1}{1-~w} = {c,cmd=\\bfseries}', FHSL).
 
 		% figure out main table parameters
-		format(atom(ColSpec),
-			'colspec={X[1,c,m]X[7,l] *{~w}{X[1,c,m]}}',
-			[HSL]),
-		HSLA is HSL + 2,
-		format(atom(CellsSpec),
-			'cell{1}{1-~w} = {c,cmd=\\bfseries}',
-			[HSLA]),
-		format(atom(RowHead),
-			'rowhead=~w',
-			[HSH]),
-		T::begin(
-			[
-				'caption=empty'
-			],
-			[
-				  ColSpec
-				, vlines, hlines
-				, 'width=\\linewidth'
-				, CellsSpec
-				, RowHead
-			]),
-		forall(between(1, HSH, RowNo),
-			draw_header_row(T, R, HS, HSL, HSH, RowNo)
-		),
-		flatten(HS, FHS),
-		make_pattern(FHS, PHS),
-		forall(HT::section(1-Node, SectionName, PHS, Decls1),
-					(
-						T::endrow,
-						T::set_cell([c=2],
-							[l,cmd=bfseries,
-							wd='0.45\\linewidth'
-						]),
-						T::bfcell(SectionName), T::tab(2),
-						draw_row_rest(T,R,Decls1),
-						forall(
-							HT::section(2-Node, SN, PHS, Decls2),
-							(
-								T::endrow,
-								R::run(1), T::tab,
-								R::run(SN), T::tab,
-								draw_row_rest(T,R, Decls2)
-							)
-						)
-					)
-				),
-		T::endrow, !,
-		draw_total_row(T, R, FHS, HSL, HSH, total(1)),
-		T::end,
-		D::hours(total, _HTotal).
+		% format(atom(ColSpec),
+		% 	'colspec={X[1,c,m]X[7,l] *{~w}{X[1,c,m]}}',
+		% 	[HSL]),
+		% HSLA is HSL + 2,
+		% format(atom(CellsSpec),
+		% 	'cell{1}{1-~w} = {c,cmd=\\bfseries}',
+		% 	[HSLA]),
+		% format(atom(RowHead),
+		% 	'rowhead=~w',
+		% 	[HSH]),
+		% T::begin(
+		% 	[
+		% 		'caption=empty'
+		% 	],
+		% 	[
+		% 		  ColSpec
+		% 		, vlines, hlines
+		% 		, 'width=\\linewidth'
+		% 		, CellsSpec
+		% 		, RowHead
+		% 	]),
+		% forall(between(1, HSH, RowNo),
+		% 	draw_header_row(T, R, HS, HSL, HSH, RowNo)
+		% ),
+		% flatten(HS, FHS),
+		% make_pattern(FHS, PHS),
+		% forall(HT::section(1-Node, SectionName, PHS, Decls1),
+		% 			(
+		% 				T::endrow,
+		% 				T::set_cell([c=2],
+		% 					[l,cmd=bfseries,
+		% 					wd='0.45\\linewidth'
+		% 				]),
+		% 				T::bfcell(SectionName), T::tab(2),
+		% 				draw_row_rest(T,R,Decls1),
+		% 				forall(
+		% 					HT::section(2-Node, SN, PHS, Decls2),
+		% 					(
+		% 						T::endrow,
+		% 						R::run(1), T::tab,
+		% 						R::run(SN), T::tab,
+		% 						draw_row_rest(T,R, Decls2)
+		% 					)
+		% 				)
+		% 			)
+		% 		),
+		% T::endrow, !,
+		% draw_total_row(T, R, FHS, HSL, HSH, total(1)),
+		% T::end,
+		% D::hours(total, _HTotal).
 
-		rec_length([], 0) .
-		rec_length([Def| T], LL) :-
-			Def =.. [_, Args], !,
-			rec_length(Args, L),
-			rec_length(T, LT),
-			LL is L + LT.
-		rec_length(_, 1).
-
-		header_height([X | T], H) :-
-			X =.. [_, Args], !,
-			header_height(Args, HA),
-			header_height(T, HT),
-			H is max(HA+1, HT).
-		header_height(_, 0).
 
 	draw_column(T, R, Atom, _H-W) :-
 		::atom_title(Atom, String),
@@ -1061,110 +1060,67 @@
 	draw_header_rest(T, R, ['#tab#'|TX], HSL, HSH, RowNo, 1) :- !,
 		T::tab,
 		draw_header_rest(T,R, TX, HSL, HSH, RowNo, 1).
-	draw_header_rest(T, R, [X|TX], HSL, HSH, RowNo, 1) :-
-		X =.. [Atom, Args],!,
-		D is HSH - RowNo + 1,
-		rec_length(Args, AL),
-		(
-			AL>1
-			->
-			T::set_cell([c=AL],[c,m, cmd=bfseries])
-			;
-			(
-				D>1
-				->
-				T::set_cell([r=D],[c,m, cmd=bfseries])
-				;
-				true
-			)
-		),
-		draw_column(T, R, Atom, D-AL),
-		AL1 is AL-1,
-		T::tab(AL1),
-		(
-			TX=[_|_]
-			->
-			T::tab
-			;
-			true
-		),
-		% debugger::trace,
-		draw_header_rest(T,R, TX, HSL, HSH, RowNo, 1).
+	% draw_header_rest(T, R, [X|TX], HSL, HSH, RowNo, 1) :-
+	% 	X =.. [Atom, Args],!,
+	% 	D is HSH - RowNo + 1,
+	% 	rec_length(Args, AL),
+	% 	(
+	% 		AL>1
+	% 		->
+	% 		T::set_cell([c=AL],[c,m, cmd=bfseries])
+	% 		;
+	% 		(
+	% 			D>1
+	% 			->
+	% 			T::set_cell([r=D],[c,m, cmd=bfseries])
+	% 			;
+	% 			true
+	% 		)
+	% 	),
+	% 	draw_column(T, R, Atom, D-AL),
+	% 	AL1 is AL-1,
+	% 	T::tab(AL1),
+	% 	(
+	% 		TX=[_|_]
+	% 		->
+	% 		T::tab
+	% 		;
+	% 		true
+	% 	),
+	% 	% debugger::trace,
+	% 	draw_header_rest(T,R, TX, HSL, HSH, RowNo, 1).
 
-	draw_header_rest(T, R, L, HSL, HSH, RowNo, N) :-
-		N > 1,
-		% debugger::trace,
-		collect2nd(L, L1),
-		format('List:~w~n', [L1]),
-		N1 is N-1,
-		draw_header_rest(T, R, L1, HSL, HSH, RowNo, N1).
+	% draw_header_rest(T, R, L, HSL, HSH, RowNo, N) :-
+	% 	N > 1,
+	% 	% debugger::trace,
+	% 	collect2nd(L, L1),
+	% 	format('List:~w~n', [L1]),
+	% 	N1 is N-1,
+	% 	draw_header_rest(T, R, L1, HSL, HSH, RowNo, N1).
 
-	draw_total_row(T, R, FHS, HSL, HSH, total(1)) :-
-		T::set_cell([c=3],[l,m,cmd=bfseries]),
-		R::run('Итого часов'), T::tab,
-		format('Flatten: ~w~n', [FHS]),
-		draw_total_rest(T, R, FHS, HSL, HSH, total(1)).
+	% draw_total_row(T, R, FHS, HSL, HSH, total(1)) :-
+	% 	T::set_cell([c=3],[l,m,cmd=bfseries]),
+	% 	R::run('Итого часов'), T::tab,
+	% 	format('Flatten: ~w~n', [FHS]),
+	% 	draw_total_rest(T, R, FHS, HSL, HSH, total(1)).
 
-	draw_total_rest(_, _, [],    _, _, total(1)) :-!.
-	draw_total_rest(_, R, [X], _, _, total(1)) :-
-		X =.. [_, Value], !,
-		R::boldface(R::run('~w', [Value])).
-	draw_total_rest(T, R, [X|TX], HSL, HSH, total(1)) :- !,
-		draw_total_rest(T, R, [X], HSL, HSH, total(1)),
-		T::tab,
-		draw_total_rest(T, R, TX, HSL, HSH, total(1)).
+	% draw_total_rest(_, _, [],    _, _, total(1)) :-!.
+	% draw_total_rest(_, R, [X], _, _, total(1)) :-
+	% 	X =.. [_, Value], !,
+	% 	R::boldface(R::run('~w', [Value])).
+	% draw_total_rest(T, R, [X|TX], HSL, HSH, total(1)) :- !,
+	% 	draw_total_rest(T, R, [X], HSL, HSH, total(1)),
+	% 	T::tab,
+	% 	draw_total_rest(T, R, TX, HSL, HSH, total(1)).
 
-	draw_row_rest(_, _, []):-!.
-	draw_row_rest(_, R, [X]):-!,
-		X =.. [_, Arg],
-		R::run(Arg).
-	draw_row_rest(T, R, [X|TX]):-
-		draw_row_rest(T, R, [X]),
-		T::tab,
-		draw_row_rest(R, R, TX).
-
-	:- use_module(library(lists), [append/3]).
-
-	collect2nd([], []).
-	collect2nd([X|T], L):-
-		X =.. [_, Args],
-		is_list(Args), !,
-		collect2nd(T, NT),
-		append(Args, NT, L).
-	collect2nd([_|T], ['#tab#'|NT]):-
-		collect2nd(T, NT).
-
-	flatten([], []):-!.
-	flatten([L|T], R) :-
-		is_list(L), !,
-		append(L, T, L1),
-		flatten(L1, R).
-	flatten([X|T], R) :-
-		X =.. [_, Args],
-		is_list(Args), !,
-		append(Args, T, T1),
-		flatten(T1, R).
-	flatten([X|T], [X|T1]) :-
-		flatten(T, T1).
-
-	make_pattern([], []):-!.
-	make_pattern([X|T], [Atom|NT]):-
-		X=..[Atom, _],
-		make_pattern(T, NT).
-
-	substantiate([], []).
-	substantiate([X|T], R) :-
-		X =.. [_ , [Arg]], !,
-		substantiate([Arg|T],R).
-	substantiate([X|T], R) :-
-		X =.. [Atom, Args],
-		substantiate(Args, Args1),
-		Args \= Args1,
-		!,
-		NX =.. [Atom, Args1],
-		substantiate([NX|T], R).
-	substantiate([X|T], [X|NT]) :-
-		substantiate(T, NT).
+	% draw_row_rest(_, _, []):-!.
+	% draw_row_rest(_, R, [X]):-!,
+	% 	X =.. [_, Arg],
+	% 	R::run(Arg).
+	% draw_row_rest(T, R, [X|TX]):-
+	% 	draw_row_rest(T, R, [X]),
+	% 	T::tab,
+	% 	draw_row_rest(R, R, TX).
 
 :- end_category.
 
