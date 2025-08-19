@@ -775,7 +775,7 @@
 				, RowHead
 				| BSpecs
 			]),
-		R::run('~n% ~w~n%~w~n', [HS, FHS]),
+		R::run('~n% ~w~n% ~w~n', [HS, FHS]),
 		forall(
 			(
 				between(1, HSH, RowNo),
@@ -815,35 +815,60 @@
 		H is max(HA+1, HT).
 	header_height(_, 0).
 
+	draw_row(T, R, HS, HSL, HSH, header(1)) :-!,
+		draw_row_(T, R, HS, HSL, HSH, header(1)).
+
 	draw_row(T, R, HS, HSL, HSH, header(RowNo)) :-
 		nonvar(RowNo),
-		RowNo >= 0, RowNo=<HSH, !,
-		forall(
-			member(Cell, HS),
-			draw_cell(T, R, Cell, HSL, HSH, header(RowNo))).
+		RowNo > 1, RowNo=<HSH, !,
+		collect2nd(HS, SHS),
+		RowNo1 is RowNo - 1,
+		draw_row(T, R, SHS, HSL, HSH, header(RowNo1)).
 
 	draw_row(T, R, HS, HSL, HSH, total(RowNo)) :-
 		nonvar(RowNo), !,
-		forall(
-			member(Cell, HS),
-			draw_cell(T, R, Cell, HSL, HSH, header(RowNo))).
+		draw_row_(T, R, HS, HSL, HSH, total(RowNo)).
 
 	draw_row(T, R, HS, HSL, HSH, RowNo) :-
-		forall(
-			member(Cell, HS),
-			draw_cell(T, R, Cell, HSL, HSH, RowNo)).
+		draw_row_(T, R, HS, HSL, HSH, RowNo).
 
-	draw_cell(T, R, Cell, _HSL, _HSH, RowNo) :-
+	draw_row_(T, R, HS, HSL, HSH, RowNo) :-
+		findall(
+			Spec-Value,
+			(
+				member(Cell, HS),
+				draw_cell(Cell, HSL, HSH, RowNo, Spec-Value)
+			),
+			Cells),
+		draw_cells(T, R, Cells).
+
+	draw_cells(_, _, []) :-!.
+	draw_cells(_, _, [_-'#tab#']) :-!.
+	draw_cells(T, R, [Spec-Value]) :-!,
+		(
+			Spec == none
+			->
+			true
+			;
+			A-B = Spec,
+			T::set_cell(A,B)
+		),
+		R::run(Value).
+	draw_cells(T, R, [Layout | Tl]) :-
+		draw_cells(T, R, [Layout]),
+		T::tab,
+		draw_cells(T, R, Tl).
+
+	draw_cell('#tab#', _HSL, _HSH, _RowNo, none-'#tab#') :-!.
+	draw_cell(Cell, _HSL, _HSH, RowNo, Spec-Value) :-
 		::mh_cell(Cell, RowNo, Value),
 		(
-			::mh_cell(spec(Cell), RowNo, A-B)
+			::mh_cell(spec(Cell), RowNo, Spec)
 			->
-			T::set_cell(A,B)
-			;
 			true
-		),
-		R::run(Value),
-		T::tab.
+			;
+			Spec = none
+		).
 
 	collect2nd([], []).
 	collect2nd([X|T], L):-
@@ -887,6 +912,65 @@
 		substantiate(T, NT).
 
 :- end_category.
+
+:- object(activity).
+
+	:- info([
+		version is 1:0:0,
+		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+		date is 2025-08-10,
+		comment is 'Describes general knowledge about activity'
+	]).
+
+	:- public(activity_class/2).
+	:- mode(activity_class(?atom, ?atom), zero_or_more).
+	:- info(activity_class/2, [
+		comment is 'Classes of hours definition',
+		argnames is ['Class', 'HourAtom']
+	]).
+
+	activity_class(contact, labwork).
+	activity_class(contact, lection).
+	activity_class(contact, practice).
+	activity_class(contact, seminary).
+	activity_class(personal, pw).
+	activity_class(education, contact).
+	activity_class(education, personal).
+	activity_class(assessment, exam).
+	activity_class(assessment, credit).
+	activity_class(assessment, grade_credit).
+
+:- end_object.
+
+:- object(discipline).
+
+	:- public(atom_title/2).
+	:- mode(atom_title(?atom, ?atom), zero_or_one).
+	:- info(atom_title/2, [
+		comment is 'Juxtapose atom to its screen title',
+		argnames is ['AtomName', 'ScreenName']
+	]).
+
+	atom_title(Atom, Title) :-
+		atom_title_(Atom, Title), !.
+	atom_title(Atom, Atom).
+
+	atom_title_(pw, 'Сам. работа').
+	atom_title_(control, 'Контроль').
+	atom_title_(lab, 'Лаб. раб.').
+	atom_title_(labwork, 'Лаб. раб.').
+	atom_title_(laboratory, 'Лаб. раб.').
+	atom_title_(lw, 'Лаб. раб.').
+	atom_title_(seminary, 'Сем.').
+	atom_title_(consult, 'Конс.').
+	atom_title_(practice,'Пр. зан.').
+	atom_title_(lection, 'Лекции').
+	atom_title_(semester, 'Семестр').
+	atom_title_(education, 'Виды учебной работы').
+	atom_title_(contact, 'Контактная работа').
+
+
+:- end_object.
 
 :- protocol(multihead_tablep).
 
@@ -967,16 +1051,37 @@
 
 	mh_colspec(number(_), 'X[1,c,m]'):-!.
 	mh_colspec(title(_), 'X[7,l]'):-!.
-	mh_colspec(_, 'X[1,cm]').
+	mh_colspec(_, 'X[1,c,m]').
 
 	mh_basic_specs([vlines, hlines]).
 
-	mh_cell(spec(title(_)), _RowNo, []-[l,cmd=bfseries]).
+	mh_cell(spec(title(_)), _RowNo, []-[l,cmd=bfseries]):-!.
 
-	mh_cell(title(_), header(_RowNo), 'Title').
-	mh_cell(number(_), header(_RowNo), '№').
+	mh_cell(spec(_), total(_), []-[c,m,cmd=bfseries]) :-!.
+	mh_cell(Compound, total(_), Value) :-
+		Compound =.. [_Name, length(Value)],!.
+	mh_cell(Compound, total(_), Value) :-
+		Compound =.. [_Name, Value],!.
+
+	mh_cell(title(_), header(_RowNo), 'Title'):-!.
+	mh_cell(number(_), header(_RowNo), '№'):-!.
+	mh_cell(spec(Compound), header(_), [c=L]-[c,m,cmd=bfseries]) :-
+		Compound =.. [_Name, Args],
+		is_list(Args), !,
+		length(Args, L).
+	mh_cell(Compound, header(_), Title) :-
+		Compound =.. [Name, _Args],!,
+		(
+			activity::activity_class(Name, Title)
+			->true;
+			Title=Name).
+
+	mh_cell(spec(_), _, none).
 	mh_cell(_, header(_), 'Header-stub').
 	mh_cell(_, _, 'stub').
+
+
+
 	mh_cellspec(FHS, CellsSpec) :-
 		length(FHS, FHSL),
 		format(atom(CellsSpec), 'cell{1}{1-~w} = {c,cmd=\\bfseries}', [FHSL]).
@@ -1264,62 +1369,3 @@
 	% ]).
 
 :- end_protocol.
-
-:- object(activity).
-
-	:- info([
-		version is 1:0:0,
-		author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
-		date is 2025-08-10,
-		comment is 'Describes general knowledge about activity'
-	]).
-
-	:- public(activity_class/2).
-	:- mode(activity_class(?atom, ?atom), zero_or_more).
-	:- info(activity_class/2, [
-		comment is 'Classes of hours definition',
-		argnames is ['Class', 'HourAtom']
-	]).
-
-	activity_class(contact, labwork).
-	activity_class(contact, lection).
-	activity_class(contact, practice).
-	activity_class(contact, seminary).
-	activity_class(personal, pw).
-	activity_class(education, contact).
-	activity_class(education, personal).
-	activity_class(assessment, exam).
-	activity_class(assessment, credit).
-	activity_class(assessment, grade_credit).
-
-:- end_object.
-
-:- object(discipline).
-
-	:- public(atom_title/2).
-	:- mode(atom_title(?atom, ?atom), zero_or_one).
-	:- info(atom_title/2, [
-		comment is 'Juxtapose atom to its screen title',
-		argnames is ['AtomName', 'ScreenName']
-	]).
-
-	atom_title(Atom, Title) :-
-		atom_title_(Atom, Title), !.
-	atom_title(Atom, Atom).
-
-	atom_title_(pw, 'Сам. работа').
-	atom_title_(control, 'Контроль').
-	atom_title_(lab, 'Лаб. раб.').
-	atom_title_(labwork, 'Лаб. раб.').
-	atom_title_(laboratory, 'Лаб. раб.').
-	atom_title_(lw, 'Лаб. раб.').
-	atom_title_(seminary, 'Сем.').
-	atom_title_(consult, 'Конс.').
-	atom_title_(practice,'Пр. зан.').
-	atom_title_(lection, 'Лекции').
-	atom_title_(semester, 'Семестр').
-	atom_title_(education, 'Виды учебной работы').
-	atom_title_(contact, 'Контактная работа').
-
-
-:- end_object.
