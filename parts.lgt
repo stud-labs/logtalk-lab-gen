@@ -1072,7 +1072,7 @@
 	mh_cell(Compound, header(_), Title) :-
 		Compound =.. [Name, _Args],!,
 		(
-			activity::activity_class(Name, Title)
+			discipline::atom_title(Name, Title)
 			->true;
 			Title=Name).
 
