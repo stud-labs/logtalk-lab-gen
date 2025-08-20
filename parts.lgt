@@ -775,7 +775,8 @@
 				, RowHead
 				| BSpecs
 			]),
-		R::run('~n% ~w~n% ~w~n', [HS, FHS]),
+		R::run('~n% HS:~w~n% FHS:~w~n', [HS, FHS]),
+		R::run('~n% HSH:~w~n', [HSH]),
 		forall(
 			(
 				between(1, HSH, RowNo),
@@ -784,7 +785,7 @@
 			T::endrow
 		),
 		forall(
-			draw_row(T, R, FHS, HSL, HSH, _RowNumber),
+			draw_row(T, R, FHS, HSL, HSH, row(_RowNumber)),
 			T::endrow
 		),
 		draw_row(T, R, FHS, HSL, HSH, total(1)),
@@ -799,6 +800,8 @@
 	]).
 
 	mh_basic_specs([vlines, hlines]).
+
+	:- protected(rec_length/2).
 
 	rec_length([], 0) .
 	rec_length([Def| T], LL) :-
@@ -840,35 +843,49 @@
 				draw_cell(Cell, HSL, HSH, RowNo, Spec-Value)
 			),
 			Cells),
-		draw_cells(T, R, Cells).
+		format(atom(S1), '% ~w HS:~w~n', [RowNo, HS]),
+		R::run(S1), R::run_ln,
+		format(atom(S2), '% ~w CC:~w~n', [RowNo, Cells]),
+		R::run(S2), R::run_ln,
+		draw_cells(T, R, Cells),
+		R::run('% XXX~n').
 
 	draw_cells(_, _, []) :-!.
-	draw_cells(_, _, [_-'#tab#']) :-!.
-	draw_cells(T, R, [Spec-Value]) :-!,
-		(
-			Spec == none
-			->
-			true
-			;
-			A-B = Spec,
-			T::set_cell(A,B)
-		),
+	draw_cells(_, _, [none]) :-!.
+	draw_cells(_, _, [_-sym(empty)]) :-!.
+	draw_cells(_, R, [none-Value]) :-!,
 		R::run(Value).
+	draw_cells(T, R, [Spec-Value]) :-!,
+		A-B = Spec,
+		T::set_cell(A,B),
+		draw_cells(T,R, [none-Value]).
 	draw_cells(T, R, [Layout | Tl]) :-
 		draw_cells(T, R, [Layout]),
 		T::tab,
 		draw_cells(T, R, Tl).
 
-	draw_cell('#tab#', _HSL, _HSH, _RowNo, none-'#tab#') :-!.
-	draw_cell(Cell, _HSL, _HSH, RowNo, Spec-Value) :-
-		::mh_cell(Cell, RowNo, Value),
+	draw_cell(sym(empty), _HSL, _HSH, _RowNo, none-sym(empty)) :-!.
+	draw_cell(Cell, _HSL, HSH, RowNo, SpecValue) :-
+		::mh_cell(Cell, RowNo, Value1),
 		(
-			::mh_cell(spec(Cell), RowNo, Spec)
+			::mh_cell(spec(Cell), RowNo, Spec1)
 			->
 			true
 			;
-			Spec = none
-		).
+			Spec1 = none
+		),
+		mh_cell_adjust_height(RowNo, HSH, Spec1-Value1, SpecValue).
+
+	mh_cell_adjust_height(header(_), _, _-sym(empty), none-sym(empty)) :-!.
+	mh_cell_adjust_height(header(Row), HSH, Spec-Value, ([r=D|A]-B)-Value):-
+		A-B=Spec,
+		D is HSH-Row+1,
+		D>1,  !.
+	mh_cell_adjust_height(header(Row), HSH, none-Value, ([r=D]-[])-Value):-
+		D is HSH-Row+1,
+		D>1,  !.
+
+	mh_cell_adjust_height(_, _, Spec, Spec).
 
 	collect2nd([], []).
 	collect2nd([X|T], L):-
@@ -876,7 +893,7 @@
 		is_list(Args), !,
 		collect2nd(T, NT),
 		append(Args, NT, L).
-	collect2nd([_|T], ['#tab#'|NT]):-
+	collect2nd([_|T], [sym(empty)|NT]):-
 		collect2nd(T, NT).
 
 	flatten([], []):-!.
@@ -1055,8 +1072,9 @@
 
 	mh_basic_specs([vlines, hlines]).
 
-	mh_cell(spec(title(_)), _RowNo, []-[l,cmd=bfseries]):-!.
 
+
+	mh_cell(spec(title(_)), _RowNo, []-[c,m,cmd=bfseries,wd='0.45\\linewidth']):-!.
 	mh_cell(spec(_), total(_), []-[c,m,cmd=bfseries]) :-!.
 	mh_cell(Compound, total(_), Value) :-
 		Compound =.. [_Name, length(Value)],!.
@@ -1065,10 +1083,16 @@
 
 	mh_cell(title(_), header(_RowNo), 'Title'):-!.
 	mh_cell(number(_), header(_RowNo), '№'):-!.
-	mh_cell(spec(Compound), header(_), [c=L]-[c,m,cmd=bfseries]) :-
+	mh_cell(spec(Compound), header(_), Spec-[c,m,cmd=bfseries]) :-
 		Compound =.. [_Name, Args],
-		is_list(Args), !,
-		length(Args, L).
+		(
+			is_list(Args)
+			->
+			::rec_length(Args, L),
+			Spec=[c=L]
+			;
+			Spec=[]
+		).
 	mh_cell(Compound, header(_), Title) :-
 		Compound =.. [Name, _Args],!,
 		(
@@ -1076,9 +1100,9 @@
 			->true;
 			Title=Name).
 
-	mh_cell(spec(_), _, none).
-	mh_cell(_, header(_), 'Header-stub').
-	mh_cell(_, _, 'stub').
+	mh_cell(spec(_), row(_), none).
+	%mh_cell(_, header(_), 'Header-stub').
+	mh_cell(_, row(_), 'stub').
 
 
 
@@ -1164,8 +1188,8 @@
 		draw_header_rest(T, R, HS, HSL, HSH, RowNo, RowNo).
 
 	draw_header_rest(_, _, [], _, _, _, 1 ) :-!.
-	draw_header_rest(_, _, ['#tab#'], _, _, _, 1) :- !.
-	draw_header_rest(T, R, ['#tab#'|TX], HSL, HSH, RowNo, 1) :- !,
+	draw_header_rest(_, _, [sym(empty)], _, _, _, 1) :- !.
+	draw_header_rest(T, R, [sym(empty)|TX], HSL, HSH, RowNo, 1) :- !,
 		T::tab,
 		draw_header_rest(T,R, TX, HSL, HSH, RowNo, 1).
 	% draw_header_rest(T, R, [X|TX], HSL, HSH, RowNo, 1) :-
