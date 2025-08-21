@@ -775,8 +775,8 @@
 				, RowHead
 				| BSpecs
 			]),
-		R::run('~n% HS:~w~n% FHS:~w~n', [HS, FHS]),
-		R::run('~n% HSH:~w~n', [HSH]),
+		% R::run('~n% HS:~w~n% FHS:~w~n', [HS, FHS]),
+		% R::run('~n% HSH:~w~n', [HSH]),
 		forall(
 			(
 				between(1, HSH, RowNo),
@@ -844,12 +844,14 @@
 				draw_cell(Cell, HSL, HSH, RowNo, Spec-Value)
 			),
 			Cells),
+		/*
 		format(atom(S1), '% ~w HS:~w~n', [RowNo, HS]),
 		R::run(S1), R::run_ln,
 		format(atom(S2), '% ~w CC:~w~n', [RowNo, Cells]),
 		R::run(S2), R::run_ln,
-		draw_cells(T, R, Cells),
-		R::run('% XXX~n').
+		*/
+		draw_cells(T, R, Cells).
+		%R::run('% XXX~n').
 
 	:- use_module(library(lists), [select/3]).
 
@@ -1127,7 +1129,7 @@
 
 
 
-	mh_cell(spec(title(_)), _RowNo, []-[c,m,cmd=bfseries,wd='0.45\\linewidth']):-!.
+	mh_cell(spec(title(_)), _RowNo, []-[c,m,cmd=bfseries]):-!.
 	mh_cell(spec(_), total(_), []-[c,m,cmd=bfseries]) :-!.
 	mh_cell(Compound, total(_), Value) :-
 		Compound =.. [_Name, length(Value)],!.
@@ -1136,8 +1138,7 @@
 
 	mh_cell(title(_), header(_RowNo), 'Раздел дисциплины/темы'):-!.
 	mh_cell(number(_), header(_RowNo), '№'):-!.
-	mh_cell(spec(number(_)), header(_RowNo), []-[c,h,cmd=bfseries]):-!.
-	% mh_cell(spec(education(_)), header(_RowNo), []-[c,m,cmd=bfseries,wd='3em']):-!.
+	mh_cell(spec(number(_)), header(_RowNo), []-[c,m,cmd=bfseries]):-!.
 	mh_cell(spec(Compound), header(_), Spec-CellSpec) :-
 		Def = [c,m,cmd=bfseries],
 		Compound =.. [_Name, Args],
