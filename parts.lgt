@@ -819,6 +819,15 @@
 	header_height(_, 0).
 
 	:- protected(draw_row/6).
+	:- mode(draw_row(+object, +objct, +compound,
+						 +integer, +intager, +compound(integer)),
+						 zero_or_more).
+	:- info(draw_row/6, [
+		comment is 'Draws a row defined by fields and row number compound',
+		argnames is ['TblrObject', 'Renderer', 'RowStructure',
+					'HeaderWidth', 'HeaderHeight', 'RowNumberStructure']
+	]).
+
 
 	draw_row(T, R, HS, HSL, HSH, header(1)) :-!,
 		draw_row_(T, R, HS, HSL, HSH, header(1)).
@@ -843,19 +852,19 @@
 			Spec-Value,
 			(
 				member(Cell, HS),
-				draw_cell(Cell, HSL, HSH, RowNo, Spec-Value)
+				::draw_cell(Cell, HSL, HSH, RowNo, Spec-Value)
 			),
 			Cells),
-		/*
-		format(atom(S1), '% ~w HS:~w~n', [RowNo, HS]),
-		R::run(S1), R::run_ln,
-		format(atom(S2), '% ~w CC:~w~n', [RowNo, Cells]),
-		R::run(S2), R::run_ln,
-		*/
-		draw_cells(T, R, Cells).
-		%R::run('% XXX~n').
+		::draw_cells(T, R, Cells).
 
 	:- use_module(library(lists), [select/3]).
+
+	:- protected(draw_cells/3).
+	:- mode(draw_cells(+object, +objct, -compound), one).
+	:- info(draw_cells/3, [
+		comment is 'Draws cells from DrawableList',
+		argnames is ['TableObject', 'Renderer', 'DrawableList']
+	]).
 
 	draw_cells(_, _, []) :-!.
 	draw_cells(_, _, [none]) :-!.
@@ -890,6 +899,14 @@
 		draw_cells(T, R, [Layout]),
 		T::tab,
 		draw_cells(T, R, Tl).
+
+	:- public(draw_cell/5).
+	:- mode(draw_cell(+compound, +intager, +intager,
+							?compound(integer), -compound), one).
+	:- info(draw_cell/5, [
+		comment is 'Defines layout of the cell drawing as (CellRange-CellSpec) - Value or none',
+		argnames is ['CellDefinition', 'HeaderWidth', 'HeaderHeight', 'RowStructure', 'Layout']
+	]).
 
 	draw_cell(sym(empty), _HSL, _HSH, _RowNo, none-sym(empty)) :-!.
 	draw_cell(Cell, _HSL, HSH, RowNo, SpecValue) :-
@@ -929,7 +946,6 @@
 			NA=A,
 			C=1
 		),!,
-		% debugger::trace,
 		delall(c=_, NA, A1),
 		delall(r=_, A1, NNA),
 		format('L:~w:~w~n', [A, Spec-Value]),
@@ -965,11 +981,6 @@
 		flatten(T1, R).
 	flatten([X|T], [X|T1]) :-
 		flatten(T, T1).
-
-	make_pattern([], []):-!.
-	make_pattern([X|T], [Atom|NT]):-
-		X=..[Atom, _],
-		make_pattern(T, NT).
 
 	substantiate([], []).
 	substantiate([X|T], R) :-
@@ -1131,7 +1142,9 @@
 
 
 
-	mh_cell(spec(title(_)), _RowNo, []-[c,m,cmd=bfseries]):-!.
+	mh_cell(spec(title(_)), header(_), []-[c,m,cmd=bfseries]):-!.
+	mh_cell(spec(title(_)), total(_), [c=1]-[l,m,cmd=bfseries]):-!.
+	mh_cell(spec(title(_)), row(_), [c=2]-[l,h,wd='0.45\\linewidth']):-!.
 	mh_cell(spec(_), total(_), []-[c,m,cmd=bfseries]) :-!.
 	mh_cell(Compound, total(_), Value) :-
 		Compound =.. [_Name, length(Value)],!.
@@ -1171,159 +1184,49 @@
 			true;
 			Title=Name).
 
+	mh_cell(spec(row(_)), row(_), []-[l,h,wd='0.40\\linewidth']).
 	mh_cell(spec(_), row(_), none).
-	%mh_cell(_, header(_), 'Header-stub').
-	mh_cell(_, row(_), 'stub').
+	mh_cell(Compound, row(_), Value) :-
+		Compound =.. [_, Value],!.
 
+	:- use_module(library(lists), [member/2]).
 
+	draw_row(T, R, [Number, _Title, _Semester | HS], W, H, row(RowNo)) :-!,
+		make_pattern(HS, PHS),
+		format('== HS:~w~n',[HS]),
+		::discipline(D),
+		::cd_body(Body),
+		HT = y_hour_table(Body, D),
+		forall(
+			HT::section(1-Node, SectionName, PHS, Decls1),
+			(
+				D1 = [title(SectionName), semester(1)|Decls1],
+				format('== Decls:~w~n',[D1]),
+				^^draw_row(T,R,D1,W,H, row(RowNo)),
+				T::endrow,
+				forall(
+					HT::section(2-Node, SN, PHS, Decls2),
+					(
+						^^draw_row(T,R,
+							[Number, text(SN), semester(1) | Decls2],
+							W,H, row(RowNo)),
+						T::endrow
+					)
+				)
+			)
+		), !, fail. % suppress a new row
+
+	draw_row(T, R, HS, W, H, RowNo) :-
+		^^draw_row(T, R, HS, W, H, RowNo).
+
+	make_pattern([], []):-!.
+	make_pattern([X|T], [Atom|NT]):-
+		X=..[Atom, _],
+		make_pattern(T, NT).
 
 	mh_cellspec(FHS, CellsSpec) :-
 		length(FHS, FHSL),
 		format(atom(CellsSpec), 'cell{1}{1-~w} = {c,cmd=\\bfseries}', [FHSL]).
-
-		% figure out main table parameters
-		% format(atom(ColSpec),
-		% 	'colspec={X[1,c,m]X[7,l] *{~w}{X[1,c,m]}}',
-		% 	[HSL]),
-		% HSLA is HSL + 2,
-		% format(atom(CellsSpec),
-		% 	'cell{1}{1-~w} = {c,cmd=\\bfseries}',
-		% 	[HSLA]),
-		% format(atom(RowHead),
-		% 	'rowhead=~w',
-		% 	[HSH]),
-		% T::begin(
-		% 	[
-		% 		'caption=empty'
-		% 	],
-		% 	[
-		% 		  ColSpec
-		% 		, vlines, hlines
-		% 		, 'width=\\linewidth'
-		% 		, CellsSpec
-		% 		, RowHead
-		% 	]),
-		% forall(between(1, HSH, RowNo),
-		% 	draw_header_row(T, R, HS, HSL, HSH, RowNo)
-		% ),
-		% flatten(HS, FHS),
-		% make_pattern(FHS, PHS),
-		% forall(HT::section(1-Node, SectionName, PHS, Decls1),
-		% 			(
-		% 				T::endrow,
-		% 				T::set_cell([c=2],
-		% 					[l,cmd=bfseries,
-		% 					wd='0.45\\linewidth'
-		% 				]),
-		% 				T::bfcell(SectionName), T::tab(2),
-		% 				draw_row_rest(T,R,Decls1),
-		% 				forall(
-		% 					HT::section(2-Node, SN, PHS, Decls2),
-		% 					(
-		% 						T::endrow,
-		% 						R::run(1), T::tab,
-		% 						R::run(SN), T::tab,
-		% 						draw_row_rest(T,R, Decls2)
-		% 					)
-		% 				)
-		% 			)
-		% 		),
-		% T::endrow, !,
-		% draw_total_row(T, R, FHS, HSL, HSH, total(1)),
-		% T::end,
-		% D::hours(total, _HTotal).
-
-
-	draw_column(T, R, Atom, _H-W) :-
-		::atom_title(Atom, String),
-		(
-			%H>1, W=1
-			W is 1
-			->
-			T::rotatebox(270, R::run(String))
-			;
-			R::run(String)
-		).
-
-	draw_header_row(T, R, HS, HSL, HSH, 1) :-!,
-		T::set_cell([r=HSH,c=1],[c,m,cmd=bfseries]),
-		R::run('№'), T::tab,
-		T::set_cell([r=HSH],[c,cmd=bfseries]),
-		R::run('Раздел дисциплины/темы'), T::tab,
-		T::set_cell([r=HSH],[c,cmd=bfseries]),
-		draw_header_rest(T, R, HS, HSL, HSH, 1, 1).
-	draw_header_row(T, R, HS, HSL, HSH, RowNo) :-
-		RowNo > 1, RowNo=<HSH, !,
-		T::endrow,
-		T::tab(2),
-		draw_header_rest(T, R, HS, HSL, HSH, RowNo, RowNo).
-
-	draw_header_rest(_, _, [], _, _, _, 1 ) :-!.
-	draw_header_rest(_, _, [sym(empty)], _, _, _, 1) :- !.
-	draw_header_rest(T, R, [sym(empty)|TX], HSL, HSH, RowNo, 1) :- !,
-		T::tab,
-		draw_header_rest(T,R, TX, HSL, HSH, RowNo, 1).
-	% draw_header_rest(T, R, [X|TX], HSL, HSH, RowNo, 1) :-
-	% 	X =.. [Atom, Args],!,
-	% 	D is HSH - RowNo + 1,
-	% 	rec_length(Args, AL),
-	% 	(
-	% 		AL>1
-	% 		->
-	% 		T::set_cell([c=AL],[c,m, cmd=bfseries])
-	% 		;
-	% 		(
-	% 			D>1
-	% 			->
-	% 			T::set_cell([r=D],[c,m, cmd=bfseries])
-	% 			;
-	% 			true
-	% 		)
-	% 	),
-	% 	draw_column(T, R, Atom, D-AL),
-	% 	AL1 is AL-1,
-	% 	T::tab(AL1),
-	% 	(
-	% 		TX=[_|_]
-	% 		->
-	% 		T::tab
-	% 		;
-	% 		true
-	% 	),
-	% 	% debugger::trace,
-	% 	draw_header_rest(T,R, TX, HSL, HSH, RowNo, 1).
-
-	% draw_header_rest(T, R, L, HSL, HSH, RowNo, N) :-
-	% 	N > 1,
-	% 	% debugger::trace,
-	% 	collect2nd(L, L1),
-	% 	format('List:~w~n', [L1]),
-	% 	N1 is N-1,
-	% 	draw_header_rest(T, R, L1, HSL, HSH, RowNo, N1).
-
-	% draw_total_row(T, R, FHS, HSL, HSH, total(1)) :-
-	% 	T::set_cell([c=3],[l,m,cmd=bfseries]),
-	% 	R::run('Итого часов'), T::tab,
-	% 	format('Flatten: ~w~n', [FHS]),
-	% 	draw_total_rest(T, R, FHS, HSL, HSH, total(1)).
-
-	% draw_total_rest(_, _, [],    _, _, total(1)) :-!.
-	% draw_total_rest(_, R, [X], _, _, total(1)) :-
-	% 	X =.. [_, Value], !,
-	% 	R::boldface(R::run('~w', [Value])).
-	% draw_total_rest(T, R, [X|TX], HSL, HSH, total(1)) :- !,
-	% 	draw_total_rest(T, R, [X], HSL, HSH, total(1)),
-	% 	T::tab,
-	% 	draw_total_rest(T, R, TX, HSL, HSH, total(1)).
-
-	% draw_row_rest(_, _, []):-!.
-	% draw_row_rest(_, R, [X]):-!,
-	% 	X =.. [_, Arg],
-	% 	R::run(Arg).
-	% draw_row_rest(T, R, [X|TX]):-
-	% 	draw_row_rest(T, R, [X]),
-	% 	T::tab,
-	% 	draw_row_rest(R, R, TX).
 
 :- end_category.
 
