@@ -627,7 +627,7 @@
 		argnames is ['Number']
 	]).
 
-	tab(1) :-
+	tab(1) :-!,
 		::tab.
 	tab(N) :-
 		N > 1, !,

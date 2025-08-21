@@ -826,7 +826,8 @@
 		RowNo > 1, RowNo=<HSH, !,
 		collect2nd(HS, SHS),
 		RowNo1 is RowNo - 1,
-		draw_row(T, R, SHS, HSL, HSH, header(RowNo1)).
+		HSH1 is HSH-1,
+		draw_row(T, R, SHS, HSL, HSH1, header(RowNo1)).
 
 	draw_row(T, R, HS, HSL, HSH, total(RowNo)) :-
 		nonvar(RowNo), !,
@@ -850,15 +851,37 @@
 		draw_cells(T, R, Cells),
 		R::run('% XXX~n').
 
+	:- use_module(library(lists), [select/3]).
+
 	draw_cells(_, _, []) :-!.
 	draw_cells(_, _, [none]) :-!.
 	draw_cells(_, _, [_-sym(empty)]) :-!.
 	draw_cells(_, R, [none-Value]) :-!,
 		R::run(Value).
+	draw_cells(T, R, [rotated-Value]) :-!,
+		T::rotatebox(270,
+			draw_cells(T,R, [none-Value])
+		).
 	draw_cells(T, R, [Spec-Value]) :-!,
 		A-B = Spec,
-		T::set_cell(A,B),
-		draw_cells(T,R, [none-Value]).
+		(
+			select(rot, B, B1)
+			->
+			T::set_cell(A,B1),
+			draw_cells(T,R, [rotated-Value])
+			;
+			T::set_cell(A,B),
+			draw_cells(T,R, [none-Value])
+		),
+		(
+			member(c=C, A), C>1
+			->
+			C1 is C-1,
+			T::tab(C1)
+			;
+			true
+		),
+		true.
 	draw_cells(T, R, [Layout | Tl]) :-
 		draw_cells(T, R, [Layout]),
 		T::tab,
@@ -876,16 +899,46 @@
 		),
 		mh_cell_adjust_height(RowNo, HSH, Spec1-Value1, SpecValue).
 
-	mh_cell_adjust_height(header(_), _, _-sym(empty), none-sym(empty)) :-!.
-	mh_cell_adjust_height(header(Row), HSH, Spec-Value, ([r=D|A]-B)-Value):-
-		A-B=Spec,
-		D is HSH-Row+1,
-		D>1,  !.
-	mh_cell_adjust_height(header(Row), HSH, none-Value, ([r=D]-[])-Value):-
-		D is HSH-Row+1,
-		D>1,  !.
+	:- use_module(library(lists), [subtract/3]).
 
-	mh_cell_adjust_height(_, _, Spec, Spec).
+	mh_cell_adjust_height(_, _, _-sym(empty), none-sym(empty)) :-!.
+	mh_cell_adjust_height(RowSpec, HSH, none, Spec):-!,
+		mh_cell_adjust_height(RowSpec, HSH, none-sym(empty), Spec).
+	mh_cell_adjust_height(header(Row), HSH, Spec-Value, Spec-Value):-
+		D is HSH-Row+1,
+		(D =< 0 ->
+			format('ERROR: D=<0 \'~w\'~n', [D]),
+			halt; true),
+		D == 1, !.
+	mh_cell_adjust_height(header(Row), HSH, none-Value, ([r=D]-[])-Value):-!,
+		D is HSH-Row+1.
+	mh_cell_adjust_height(header(Row), HSH, Spec-Value, ([r=D|NNA]-B)-Value):-
+		D is HSH-Row+1,
+		A-B=Spec,
+		(
+			member(c=C, A),
+			nonvar(C),
+			C>1
+			->
+			fail
+			;
+			NA=A,
+			C=1
+		),!,
+		% debugger::trace,
+		delall(c=_, NA, A1),
+		delall(r=_, A1, NNA),
+		format('L:~w:~w~n', [A, Spec-Value]),
+		!.
+
+	mh_cell_adjust_height(_, _, Spec, Spec):-
+		format('SPEC:~w~n',[Spec]).
+
+	delall(_, [], []).
+	delall(X, [X|T], R):-!,
+		delall(X,T,R).
+	delall(X, [Y|T], [Y|R]):-
+		delall(X,T,R).
 
 	collect2nd([], []).
 	collect2nd([X|T], L):-
@@ -1067,7 +1120,7 @@
 		HT::header_structure(HST).
 
 	mh_colspec(number(_), 'X[1,c,m]'):-!.
-	mh_colspec(title(_), 'X[7,l]'):-!.
+	mh_colspec(title(_), 'X[4,l]'):-!.
 	mh_colspec(_, 'X[1,c,m]').
 
 	mh_basic_specs([vlines, hlines]).
@@ -1081,23 +1134,38 @@
 	mh_cell(Compound, total(_), Value) :-
 		Compound =.. [_Name, Value],!.
 
-	mh_cell(title(_), header(_RowNo), 'Title'):-!.
+	mh_cell(title(_), header(_RowNo), 'Раздел дисциплины/темы'):-!.
 	mh_cell(number(_), header(_RowNo), '№'):-!.
-	mh_cell(spec(Compound), header(_), Spec-[c,m,cmd=bfseries]) :-
+	mh_cell(spec(number(_)), header(_RowNo), []-[c,h,cmd=bfseries]):-!.
+	% mh_cell(spec(education(_)), header(_RowNo), []-[c,m,cmd=bfseries,wd='3em']):-!.
+	mh_cell(spec(Compound), header(_), Spec-CellSpec) :-
+		Def = [c,m,cmd=bfseries],
 		Compound =.. [_Name, Args],
 		(
 			is_list(Args)
 			->
 			::rec_length(Args, L),
-			Spec=[c=L]
+			(
+				L>1
+				->
+				Spec=[c=L],
+				CellSpec = Def
+				;
+				Spec=[],
+				CellSpec = [rot|Def]
+			)
 			;
-			Spec=[]
+			Spec=[],
+			CellSpec = [rot|Def]
 		).
 	mh_cell(Compound, header(_), Title) :-
 		Compound =.. [Name, _Args],!,
 		(
 			discipline::atom_title(Name, Title)
-			->true;
+			->
+			% format('AT: ~w - ~w~n', [Name, Title]),
+			% (Name== education -> debugger::trace;true),
+			true;
 			Title=Name).
 
 	mh_cell(spec(_), row(_), none).
