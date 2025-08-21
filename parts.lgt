@@ -780,15 +780,15 @@
 		forall(
 			(
 				between(1, HSH, RowNo),
-				draw_row(T, R, HS, HSL, HSH, header(RowNo))
+				::draw_row(T, R, HS, HSL, HSH, header(RowNo))
 			),
 			T::endrow
 		),
 		forall(
-			draw_row(T, R, FHS, HSL, HSH, row(_RowNumber)),
+			::draw_row(T, R, FHS, HSL, HSH, row(_RowNumber)),
 			T::endrow
 		),
-		draw_row(T, R, FHS, HSL, HSH, total(1)),
+		::draw_row(T, R, FHS, HSL, HSH, total(1)),
 		T::end,
 		true.
 
@@ -817,6 +817,8 @@
 		header_height(T, HT),
 		H is max(HA+1, HT).
 	header_height(_, 0).
+
+	:- protected(draw_row/6).
 
 	draw_row(T, R, HS, HSL, HSH, header(1)) :-!,
 		draw_row_(T, R, HS, HSL, HSH, header(1)).
