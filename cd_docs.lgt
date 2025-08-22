@@ -138,6 +138,9 @@
 				city('Иркутск', 2025)
 			]).
 
+	number_topics(I, O) :-
+		O = I.put(metadata/numbered, 'auto').
+
 	draw(plain, Options) :-
 		::renderer(R),
 		^^draw_department_title(centering, Options),
@@ -146,7 +149,8 @@
 		% debugger::trace,
 		::connect_yaml(body(
 			content/disciplines/(title=Title)/file),
-			body),
+			body,
+			number_topics),
 		T = tabularx(R, []),
 		::option(width(Width), Options,
 			width('\\columnwidth')),
