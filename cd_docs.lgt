@@ -200,11 +200,32 @@
 		argnames is ['YAMLSelector', 'StorageKey']
 	]).
 
+	% connect_yaml(Query, Key) :-
+	% 	global::connect_yaml(Query,
+	% 		path_name(PathName)),
+	% 	^^yaml_load(PathName, YAML),
+	% 	yamls::yaml_dom(Key, YAML).
+
+	% :- use_module(user, [loc_eq/2]).
+
 	connect_yaml(Query, Key) :-
+		connect_yaml(Query, Key, =).
+
+	:- protected(connect_yaml/3).
+	:- mode(connect_yaml(+atom, +atom, +compound), zero_or_one).
+	:- info(connect_yaml/3, [
+		comment is 'Connect adressed YAML data with application of a Goal/2 as preprocessing',
+		argnames is ['YAMLSelector', 'StorageKey', 'PreprocessingGoal']
+	]).
+
+	:- meta_predicate(connect_yaml(*,*,2)).
+
+	connect_yaml(Query, Key, Goal) :-
 		global::connect_yaml(Query,
 			path_name(PathName)),
 		^^yaml_load(PathName, YAML),
-		yamls::yaml_dom(Key, YAML).
+		call(Goal, YAML, PYAML),
+		yamls::yaml_dom(Key, PYAML).
 
 	:- protected(yaml_dom/2).
 	:- mode(yaml_dom(+atom, -atom), zero_or_one).
