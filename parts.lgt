@@ -1189,27 +1189,41 @@
 	mh_cell(Compound, row(_), Value) :-
 		Compound =.. [_, Value],!.
 
-	:- use_module(library(lists), [member/2]).
+	:- use_module(library(lists), [member/2, nth1/3, nth0/3]).
 
-	draw_row(T, R, [Number, _Title, _Semester | HS], W, H, row(RowNo)) :-!,
+	draw_row(T, R, [_Number, _Title, _Semester | HS], W, H, row(RowNo)) :-!,
 		make_pattern(HS, PHS),
 		format('== HS:~w~n',[HS]),
 		::discipline(D),
 		::cd_body(Body),
 		HT = y_hour_table(Body, D),
-		forall(
-			HT::section(1-Node, SectionName, PHS, Decls1),
+		findall(Dec-Decs-DL,
 			(
-				D1 = [title(SectionName), semester(1)|Decls1],
-				format('== Decls:~w~n',[D1]),
-				^^draw_row(T,R,D1,W,H, row(RowNo)),
+				HT::section(1-Node, SectionName, PHS, Decls1),
+				Dec = [title(SectionName), semester(1)|Decls1],
+				findall(
+					[text(SN), semester(1) | Decls2],
+					(
+						HT::section(2-Node, SN, PHS, Decls2)
+					),
+					Decs
+				),
+				length(Decs,DL)
+			),
+			Sections1
+		),
+		forall(
+			nth1(NIndex1, Sections1, Dec1-Decs-DL),
+			(
+				% format(atom(Index1),'~w',[NIndex1]),
+				^^draw_row(T,R,Dec1,W,H, row(RowNo)),
 				T::endrow,
 				forall(
-					HT::section(2-Node, SN, PHS, Decls2),
+					nth1(NIndex2, Decs, Dec2),
 					(
+						format(atom(Index2),'~w.~w', [NIndex1, NIndex2]),
 						^^draw_row(T,R,
-							[Number, text(SN), semester(1) | Decls2],
-							W,H, row(RowNo)),
+							[number(Index2)| Dec2], W,H, row(RowNo)),
 						T::endrow
 					)
 				)
