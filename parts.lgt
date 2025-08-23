@@ -1196,34 +1196,22 @@
 		format('== HS:~w~n',[HS]),
 		::discipline(D),
 		::cd_body(Body),
+		debugger::trace,
 		HT = y_hour_table(Body, D),
-		findall(Dec-Decs-DL,
-			(
-				HT::section(1-Node, SectionName, PHS, Decls1),
-				Dec = [title(SectionName), semester(1)|Decls1],
-				findall(
-					[text(SN), semester(1) | Decls2],
-					(
-						HT::section(2-Node, SN, PHS, Decls2)
-					),
-					Decs
-				),
-				length(Decs,DL)
-			),
-			Sections1
-		),
 		forall(
-			nth1(NIndex1, Sections1, Dec1-Decs-DL),
+			HT::section(1-Node, SectionName, PHS, Decls1),
 			(
-				% format(atom(Index1),'~w',[NIndex1]),
+				Dec1 = [title(SectionName), semester(1)|Decls1],
+				Number1 = Node.get(number),
 				^^draw_row(T,R,Dec1,W,H, row(RowNo)),
 				T::endrow,
 				forall(
-					nth1(NIndex2, Decs, Dec2),
+					HT::section(2-Node, SN, PHS, Decls2),
 					(
-						format(atom(Index2),'~w.~w', [NIndex1, NIndex2]),
-						^^draw_row(T,R,
-							[number(Index2)| Dec2], W,H, row(RowNo)),
+						Number2 = Node.get(number),
+						format(atom(Index2),'~w.~w', [Number1, Number2]),
+						Dec2 = [number(Index2), text(SN), semester(1)|Decls2],
+						^^draw_row(T,R, Dec2, W,H, row(RowNo)),
 						T::endrow
 					)
 				)
