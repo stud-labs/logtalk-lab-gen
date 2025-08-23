@@ -138,8 +138,20 @@
 				city('Иркутск', 2025)
 			]).
 
-	number_topics(I, O) :-
-		O = I.put(metadata/numbered, 'auto').
+	number_content(I, O) :-
+		Content = I.get(content),!,
+		is_list(Content),!,
+		number_content(1, Content, NumberedContent),
+		R = I.put(metadata/numbered, 'auto'),!,
+		O = R.put(content, NumberedContent).
+	number_content(I, I).
+
+	number_content(_, [], []).
+	number_content(N, [X|T], [Y|R]):-!,
+		R = X.put(number, N),
+		number_content(1,R,Y),
+		N1 is N+1,
+		number_content(N1, T, R).
 
 	draw(plain, Options) :-
 		::renderer(R),
@@ -150,7 +162,7 @@
 		::connect_yaml(body(
 			content/disciplines/(title=Title)/file),
 			body,
-			number_topics),
+			number_content),
 		T = tabularx(R, []),
 		::option(width(Width), Options,
 			width('\\columnwidth')),
